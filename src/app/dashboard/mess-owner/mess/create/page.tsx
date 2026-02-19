@@ -8,6 +8,7 @@ import LocationPickerModal from '@/components/LocationPickerModal';
 
 interface MenuItem {
     dishName: string;
+    price: number;
 }
 
 export default function CreateMessPage() {
@@ -36,7 +37,7 @@ export default function CreateMessPage() {
     });
 
     const [menuItems, setMenuItems] = useState<MenuItem[]>([
-        { dishName: '' },
+        { dishName: '', price: 0 },
     ]);
 
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -127,7 +128,7 @@ export default function CreateMessPage() {
 
     // Menu items management
     const addMenuItem = () => {
-        setMenuItems([...menuItems, { dishName: '' }]);
+        setMenuItems([...menuItems, { dishName: '', price: 0 }]);
     };
 
     const removeMenuItem = (index: number) => {
@@ -136,8 +137,9 @@ export default function CreateMessPage() {
         }
     };
 
-    const updateMenuItem = (index: number, field: 'dishName', value: string) => {
+    const updateMenuItem = (index: number, field: 'dishName' | 'price', value: string | number) => {
         const updated = [...menuItems];
+        // @ts-ignore
         updated[index][field] = value;
         setMenuItems(updated);
     };
@@ -154,7 +156,7 @@ export default function CreateMessPage() {
     const handleMenuToggle = (value: 'yes' | 'no') => {
         setFormData((prev) => ({ ...prev, menuEnabled: value }));
         if (value === 'no') {
-            setMenuItems([{ dishName: '' }]);
+            setMenuItems([{ dishName: '', price: 0 }]);
         }
     };
 
@@ -189,6 +191,7 @@ export default function CreateMessPage() {
                     .filter((item) => item.dishName.trim().length > 0)
                     .map((item) => ({
                         dishName: item.dishName.trim(),
+                        price: Number(item.price) || 0,
                     }))
                 : [];
 
@@ -620,19 +623,36 @@ export default function CreateMessPage() {
                                     className="flex gap-3 items-end"
                                     style={{ marginBottom: '0.75rem' }}
                                 >
-                                    <div className="flex-1">
-                                        <label className="label" style={{ fontSize: '0.775rem' }}>
-                                            Dish Name {index + 1}
-                                        </label>
-                                        <input
-                                            type="text"
-                                            className="input"
-                                            placeholder="e.g., Paneer Butter Masala"
-                                            value={item.dishName}
-                                            onChange={(e) =>
-                                                updateMenuItem(index, 'dishName', e.target.value)
-                                            }
-                                        />
+                                    <div className="flex-1 grid grid-cols-3 gap-2">
+                                        <div className="col-span-2">
+                                            <label className="label" style={{ fontSize: '0.775rem' }}>
+                                                Dish Name {index + 1}
+                                            </label>
+                                            <input
+                                                type="text"
+                                                className="input"
+                                                placeholder="e.g., Paneer Butter Masala"
+                                                value={item.dishName}
+                                                onChange={(e) =>
+                                                    updateMenuItem(index, 'dishName', e.target.value)
+                                                }
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="label" style={{ fontSize: '0.775rem' }}>
+                                                Price (₹)
+                                            </label>
+                                            <input
+                                                type="number"
+                                                className="input"
+                                                placeholder="0"
+                                                value={item.price || ''}
+                                                onChange={(e) =>
+                                                    updateMenuItem(index, 'price', parseFloat(e.target.value))
+                                                }
+                                                min="0"
+                                            />
+                                        </div>
                                     </div>
                                     <button
                                         type="button"

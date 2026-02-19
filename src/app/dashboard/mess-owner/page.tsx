@@ -306,8 +306,8 @@ export default function MessOwnerDashboard() {
                         {/* Stats Grid */}
                         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                             <div className="card">
-                                <div className="text-3xl font-bold gradient-text">{data.monthly.totalViews}</div>
-                                <div className="text-sm text-muted">Total Views (30d)</div>
+                                <div className="text-3xl font-bold gradient-text">{data.mess.viewCount}</div>
+                                <div className="text-sm text-muted">Total Profile Views</div>
                             </div>
                             <div className="card">
                                 <div className="text-3xl font-bold text-yellow-500">
@@ -395,10 +395,6 @@ export default function MessOwnerDashboard() {
                                                 <stop offset="5%" stopColor="var(--color-primary, #7c3aed)" stopOpacity={0.3} />
                                                 <stop offset="95%" stopColor="var(--color-primary, #7c3aed)" stopOpacity={0} />
                                             </linearGradient>
-                                            <linearGradient id="colorMenuViews" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="#f97316" stopOpacity={0.3} />
-                                                <stop offset="95%" stopColor="#f97316" stopOpacity={0} />
-                                            </linearGradient>
                                         </defs>
                                         <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border, #333)" />
                                         <XAxis
@@ -430,15 +426,6 @@ export default function MessOwnerDashboard() {
                                             strokeWidth={2}
                                             fillOpacity={1}
                                             fill="url(#colorMessViews)"
-                                        />
-                                        <Area
-                                            type="monotone"
-                                            dataKey="menuViews"
-                                            name="Menu Views"
-                                            stroke="#f97316"
-                                            strokeWidth={2}
-                                            fillOpacity={1}
-                                            fill="url(#colorMenuViews)"
                                         />
                                     </AreaChart>
                                 </ResponsiveContainer>
