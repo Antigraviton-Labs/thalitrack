@@ -1,0 +1,150 @@
+﻿src/app/api/admin/users/route.ts(44,71): error TS2769: No overload matches this call.
+  Overload 1 of 4, '(filter?: _QueryFilter<{ status: NonNullable<"trial" | "active" | "cancelled" | "expired" | "pending">; _id: ObjectId; createdAt: Date; updatedAt: Date; $assertPopulated: <Paths = {}>(path: string | string[], values?: Partial<...> | undefined) => Omit<...> & Paths; ... 222 more ...; "schema.eventNames": () => (string | symbol)[]; }> | undefined, projection?: ProjectionType<...> | ... 1 more ... | undefined, options?: (QueryOptions<...> & Abortable) | ... 1 more ... | undefined): Query<...>', gave the following error.
+    Type 'ObjectId' is not assignable to type 'Condition<ApplyBasicQueryCasting<string>> | undefined'.
+      Type 'ObjectId' is not assignable to type 'FilterOperators<string | RegExp | string[] | BSONRegExp | null>'.
+        Types of property 'id' are incompatible.
+          Type 'Uint8Array<ArrayBufferLike>' is not assignable to type 'undefined'.
+  Overload 2 of 4, '(filter?: Query<any, any, {}, unknown, "find", Record<string, never>> | undefined, projection?: ProjectionType<ISubscriptionDocument> | null | undefined, options?: (QueryOptions<...> & Abortable) | ... 1 more ... | undefined): Query<...>', gave the following error.
+    Object literal may only specify known properties, and 'messOwnerId' does not exist in type 'Query<any, any, {}, unknown, "find", Record<string, never>>'.
+src/app/api/admin/users/route.ts(45,55): error TS2769: No overload matches this call.
+  Overload 1 of 4, '(filter?: _QueryFilter<{ _id: ObjectId; name: string; isActive: boolean; createdAt: Date; updatedAt: Date; $assertPopulated: <Paths = {}>(path: string | string[], values?: Partial<Paths> | undefined) => Omit<...> & Paths; ... 242 more ...; "menuItems.dishName": string; }> | undefined, projection?: ProjectionType<...> | ... 1 more ... | undefined, options?: (QueryOptions<...> & Abortable) | ... 1 more ... | undefined): Query<...>', gave the following error.
+    Type 'ObjectId' is not assignable to type 'Condition<ApplyBasicQueryCasting<string>> | undefined'.
+      Type 'ObjectId' is not assignable to type 'FilterOperators<string | RegExp | string[] | BSONRegExp | null>'.
+        Types of property 'id' are incompatible.
+          Type 'Uint8Array<ArrayBufferLike>' is not assignable to type 'undefined'.
+  Overload 2 of 4, '(filter?: Query<any, any, {}, unknown, "find", Record<string, never>> | undefined, projection?: ProjectionType<IMessDocument> | null | undefined, options?: (QueryOptions<...> & Abortable) | ... 1 more ... | undefined): Query<...>', gave the following error.
+    Object literal may only specify known properties, and 'ownerId' does not exist in type 'Query<any, any, {}, unknown, "find", Record<string, never>>'.
+src/app/api/auth/register/route.ts(43,17): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Type 'ObjectId' is not assignable to type 'StringQueryTypeCasting | undefined'.
+src/app/api/mess-owner/analytics/route.ts(31,13): error TS2769: No overload matches this call.
+  Overload 1 of 4, '(filter?: _QueryFilter<{ _id: ObjectId; $assertPopulated: <Paths = {}>(path: string | string[], values?: Partial<Paths> | undefined) => Omit<IAnalyticsDocument, keyof Paths> & Paths; ... 221 more ...; "schema.eventNames": () => (string | symbol)[]; }> | undefined, projection?: ProjectionType<...> | ... 1 more ... | undefined, options?: (QueryOptions<...> & Abortable) | undefined): Query<...>', gave the following error.
+    Type 'ObjectId' is not assignable to type 'Condition<ApplyBasicQueryCasting<string>> | undefined'.
+      Type 'ObjectId' is not assignable to type 'FilterOperators<string | RegExp | string[] | BSONRegExp | null>'.
+        Types of property 'id' are incompatible.
+          Type 'Uint8Array<ArrayBufferLike>' is not assignable to type 'undefined'.
+  Overload 2 of 4, '(filter?: Query<any, any, {}, unknown, "find", Record<string, never>> | undefined, projection?: ProjectionType<IAnalyticsDocument> | null | undefined, options?: (QueryOptions<...> & Abortable) | undefined): Query<...>', gave the following error.
+    Object literal may only specify known properties, and 'messId' does not exist in type 'Query<any, any, {}, unknown, "find", Record<string, never>>'.
+src/app/api/messes/[id]/menu/route.ts(128,21): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(filter?: _QueryFilter<{ rating: number; _id: ObjectId; createdAt: Date; $assertPopulated: <Paths = {}>(path: string | string[], values?: Partial<Paths> | undefined) => Omit<...> & Paths; ... 221 more ...; "schema.eventNames": () => (string | symbol)[]; }> | undefined, options?: (DeleteOptions & ... 1 more ... & { ...; }) | ... 1 more ... | undefined): Query<...>', gave the following error.
+    Type 'ObjectId' is not assignable to type 'Condition<ApplyBasicQueryCasting<string>> | undefined'.
+      Type 'ObjectId' is not assignable to type 'FilterOperators<string | RegExp | string[] | BSONRegExp | null>'.
+        Types of property 'id' are incompatible.
+          Type 'Uint8Array<ArrayBufferLike>' is not assignable to type 'undefined'.
+  Overload 2 of 2, '(filter?: Query<any, any, {}, unknown, "find", Record<string, never>> | undefined, options?: (DeleteOptions & Pick<QueryOptions<IRatingDocument>, "timestamps" | ... 1 more ... | "lean"> & { ...; }) | null | undefined): Query<...>', gave the following error.
+    Object literal may only specify known properties, and 'menuId' does not exist in type 'Query<any, any, {}, unknown, "find", Record<string, never>>'.
+src/app/api/messes/route.ts(293,21): error TS2769: No overload matches this call.
+  Overload 1 of 4, '(filter?: _QueryFilter<{ _id: ObjectId; createdAt: Date; updatedAt: Date; $assertPopulated: <Paths = {}>(path: string | string[], values?: Partial<Paths> | undefined) => Omit<...> & Paths; ... 224 more ...; "schema.eventNames": () => (string | symbol)[]; }> | undefined, projection?: ProjectionType<...> | ... 1 more ... | undefined, options?: (QueryOptions<...> & Abortable) | ... 1 more ... | undefined): Query<...>', gave the following error.
+    Type 'ObjectId' is not assignable to type 'Condition<ApplyBasicQueryCasting<string>> | undefined'.
+      Type 'ObjectId' is not assignable to type 'FilterOperators<string | RegExp | string[] | BSONRegExp | null>'.
+        Types of property 'id' are incompatible.
+          Type 'Uint8Array<ArrayBufferLike>' is not assignable to type 'undefined'.
+  Overload 2 of 4, '(filter?: Query<any, any, {}, unknown, "find", Record<string, never>> | undefined, projection?: ProjectionType<IMenuDocument> | null | undefined, options?: (QueryOptions<...> & Abortable) | ... 1 more ... | undefined): Query<...>', gave the following error.
+    Object literal may only specify known properties, and 'messId' does not exist in type 'Query<any, any, {}, unknown, "find", Record<string, never>>'.
+src/app/api/messes/route.ts(387,13): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Type 'ObjectId' is not assignable to type 'StringQueryTypeCasting | undefined'.
+src/app/api/suggestions/route.ts(55,19): error TS2345: Argument of type 'Record<string, number>' is not assignable to parameter of type 'string | Record<string, SortOrder | { $meta: any; }> | [string, SortOrder][] | null | undefined'.
+  Type 'Record<string, number>' is missing the following properties from type '[string, SortOrder][]': length, pop, push, concat, and 35 more.
+src/app/api/suggestions/route.ts(72,23): error TS2352: Conversion of type 'string' to type '{ _id: string; name: string; }' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/app/api/suggestions/route.ts(73,24): error TS2352: Conversion of type 'string' to type '{ _id: string; name: string; }' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/components/LocationPickerModal.tsx(19,24): error TS2304: Cannot find name 'google'.
+src/components/LocationPickerModal.tsx(37,35): error TS2503: Cannot find namespace 'google'.
+src/components/LocationPickerModal.tsx(38,30): error TS2503: Cannot find namespace 'google'.
+src/components/LocationPickerModal.tsx(40,36): error TS2503: Cannot find namespace 'google'.
+src/components/LocationPickerModal.tsx(147,38): error TS2503: Cannot find namespace 'google'.
+src/components/ui/MessCard.tsx(68,23): error TS2339: Property 'todayMenu' does not exist on type 'MessWithDistance'.
+src/components/ui/MessCard.tsx(72,35): error TS2339: Property 'todayMenu' does not exist on type 'MessWithDistance'.
+src/components/ui/MessCard.tsx(73,35): error TS2339: Property 'todayMenu' does not exist on type 'MessWithDistance'.
+src/lib/models/Analytics.ts(8,9): error TS2322: Type '{ type: typeof Schema.Types.ObjectId; ref: string; required: [true, string]; index: true; }' is not assignable to type 'SchemaDefinitionProperty<string, IAnalyticsDocument, Document<unknown, {}, IAnalyticsDocument, { id: string; }, ResolveSchemaOptions<DefaultSchemaOptions>> & Omit<...> & { ...; }> | undefined'.
+  Types of property 'type' are incompatible.
+    Type 'typeof ObjectId' is not assignable to type 'typeof Mixed | StringSchemaDefinition | undefined'.
+      Type 'typeof ObjectId' is not assignable to type 'typeof Mixed | StringConstructor | typeof String | String'.
+        Type 'typeof ObjectId' is not assignable to type 'typeof Mixed'.
+          Types of property 'schemaName' are incompatible.
+            Type '"ObjectId"' is not assignable to type '"Mixed"'.
+src/lib/models/Analytics.ts(29,9): error TS2322: Type '{ type: (typeof Schema.Types.ObjectId)[]; ref: string; default: never[]; }' is not assignable to type 'SchemaDefinitionProperty<string[], IAnalyticsDocument, Document<unknown, {}, IAnalyticsDocument, { id: string; }, ResolveSchemaOptions<DefaultSchemaOptions>> & Omit<...> & { ...; }> | undefined'.
+  Types of property 'type' are incompatible.
+    Type '(typeof ObjectId)[]' is not assignable to type 'typeof Mixed | AnyArray<StringSchemaDefinition> | AnyArray<SchemaTypeOptions<string, IAnalyticsDocument, Document<unknown, {}, IAnalyticsDocument, { ...; }, ResolveSchemaOptions<...>> & Omit<...> & { ...; }>> | undefined'.
+      Type '(typeof ObjectId)[]' is not assignable to type 'StringSchemaDefinition[]'.
+        Type 'typeof ObjectId' is not assignable to type 'StringSchemaDefinition'.
+          Type 'typeof ObjectId' is missing the following properties from type 'StringConstructor': fromCharCode, fromCodePoint, raw
+src/lib/models/Menu.ts(8,9): error TS2322: Type '{ type: typeof Schema.Types.ObjectId; ref: string; required: [true, string]; index: true; }' is not assignable to type 'SchemaDefinitionProperty<string, IMenuDocument, Document<unknown, {}, IMenuDocument, { id: string; }, ResolveSchemaOptions<DefaultSchemaOptions>> & Omit<...> & { ...; }> | undefined'.
+  Types of property 'type' are incompatible.
+    Type 'typeof ObjectId' is not assignable to type 'typeof Mixed | StringSchemaDefinition | undefined'.
+      Type 'typeof ObjectId' is not assignable to type 'typeof Mixed | StringConstructor | typeof String | String'.
+        Type 'typeof ObjectId' is not assignable to type 'typeof Mixed'.
+          Types of property 'schemaName' are incompatible.
+            Type '"ObjectId"' is not assignable to type '"Mixed"'.
+src/lib/models/Mess.ts(8,9): error TS2322: Type '{ type: typeof Schema.Types.ObjectId; ref: string; required: [true, string]; index: true; }' is not assignable to type 'SchemaDefinitionProperty<string, IMessDocument, Document<unknown, {}, IMessDocument, { id: string; }, ResolveSchemaOptions<DefaultSchemaOptions>> & Omit<...> & { ...; }> | undefined'.
+  Types of property 'type' are incompatible.
+    Type 'typeof ObjectId' is not assignable to type 'typeof Mixed | StringSchemaDefinition | undefined'.
+      Type 'typeof ObjectId' is not assignable to type 'typeof Mixed | StringConstructor | typeof String | String'.
+        Type 'typeof ObjectId' is not assignable to type 'typeof Mixed'.
+          Types of property 'schemaName' are incompatible.
+            Type '"ObjectId"' is not assignable to type '"Mixed"'.
+src/lib/models/Rating.ts(8,9): error TS2322: Type '{ type: typeof Schema.Types.ObjectId; ref: string; required: [true, string]; index: true; }' is not assignable to type 'SchemaDefinitionProperty<string, IRatingDocument, Document<unknown, {}, IRatingDocument, { id: string; }, ResolveSchemaOptions<DefaultSchemaOptions>> & Omit<...> & { ...; }> | undefined'.
+  Types of property 'type' are incompatible.
+    Type 'typeof ObjectId' is not assignable to type 'typeof Mixed | StringSchemaDefinition | undefined'.
+      Type 'typeof ObjectId' is not assignable to type 'typeof Mixed | StringConstructor | typeof String | String'.
+        Type 'typeof ObjectId' is not assignable to type 'typeof Mixed'.
+          Types of property 'schemaName' are incompatible.
+            Type '"ObjectId"' is not assignable to type '"Mixed"'.
+src/lib/models/Rating.ts(14,9): error TS2322: Type '{ type: typeof Schema.Types.ObjectId; ref: string; required: [true, string]; index: true; }' is not assignable to type 'SchemaDefinitionProperty<string, IRatingDocument, Document<unknown, {}, IRatingDocument, { id: string; }, ResolveSchemaOptions<DefaultSchemaOptions>> & Omit<...> & { ...; }> | undefined'.
+  Types of property 'type' are incompatible.
+    Type 'typeof ObjectId' is not assignable to type 'typeof Mixed | StringSchemaDefinition | undefined'.
+      Type 'typeof ObjectId' is not assignable to type 'typeof Mixed | StringConstructor | typeof String | String'.
+        Type 'typeof ObjectId' is not assignable to type 'typeof Mixed'.
+          Types of property 'schemaName' are incompatible.
+            Type '"ObjectId"' is not assignable to type '"Mixed"'.
+src/lib/models/Subscription.ts(8,9): error TS2322: Type '{ type: typeof Schema.Types.ObjectId; ref: string; required: [true, string]; unique: true; index: true; }' is not assignable to type 'SchemaDefinitionProperty<string, ISubscriptionDocument, Document<unknown, {}, ISubscriptionDocument, { id: string; }, ResolveSchemaOptions<DefaultSchemaOptions>> & Omit<...> & { ...; }> | undefined'.
+  Types of property 'type' are incompatible.
+    Type 'typeof ObjectId' is not assignable to type 'typeof Mixed | StringSchemaDefinition | undefined'.
+      Type 'typeof ObjectId' is not assignable to type 'typeof Mixed | StringConstructor | typeof String | String'.
+        Type 'typeof ObjectId' is not assignable to type 'typeof Mixed'.
+          Types of property 'schemaName' are incompatible.
+            Type '"ObjectId"' is not assignable to type '"Mixed"'.
+src/lib/models/Subscription.ts(72,24): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type '{ messOwnerId: string; status: string; trialEndsAt: Date; }' is not assignable to parameter of type 'DeepPartial<ApplyBasicCreateCasting<Require_id<RawDocType>>>'.
+src/lib/models/Suggestion.ts(8,9): error TS2322: Type '{ type: typeof Schema.Types.ObjectId; ref: string; required: [true, string]; index: true; }' is not assignable to type 'SchemaDefinitionProperty<string, ISuggestionDocument, Document<unknown, {}, ISuggestionDocument, { id: string; }, ResolveSchemaOptions<DefaultSchemaOptions>> & Omit<...> & { ...; }> | undefined'.
+  Types of property 'type' are incompatible.
+    Type 'typeof ObjectId' is not assignable to type 'typeof Mixed | StringSchemaDefinition | undefined'.
+      Type 'typeof ObjectId' is not assignable to type 'typeof Mixed | StringConstructor | typeof String | String'.
+        Type 'typeof ObjectId' is not assignable to type 'typeof Mixed'.
+          Types of property 'schemaName' are incompatible.
+            Type '"ObjectId"' is not assignable to type '"Mixed"'.
+src/lib/models/Suggestion.ts(31,9): error TS2322: Type '{ type: (typeof Schema.Types.ObjectId)[]; ref: string; default: never[]; }' is not assignable to type 'SchemaDefinitionProperty<string[], ISuggestionDocument, Document<unknown, {}, ISuggestionDocument, { id: string; }, ResolveSchemaOptions<DefaultSchemaOptions>> & Omit<...> & { ...; }> | undefined'.
+  Types of property 'type' are incompatible.
+    Type '(typeof ObjectId)[]' is not assignable to type 'typeof Mixed | AnyArray<StringSchemaDefinition> | AnyArray<SchemaTypeOptions<string, ISuggestionDocument, Document<unknown, {}, ISuggestionDocument, { ...; }, ResolveSchemaOptions<...>> & Omit<...> & { ...; }>> | undefined'.
+      Type '(typeof ObjectId)[]' is not assignable to type 'StringSchemaDefinition[]'.
+        Type 'typeof ObjectId' is not assignable to type 'StringSchemaDefinition'.
+          Type 'typeof ObjectId' is missing the following properties from type 'StringConstructor': fromCharCode, fromCodePoint, raw
+src/lib/models/Suggestion.ts(36,9): error TS2322: Type '{ type: (typeof Schema.Types.ObjectId)[]; ref: string; default: never[]; }' is not assignable to type 'SchemaDefinitionProperty<string[], ISuggestionDocument, Document<unknown, {}, ISuggestionDocument, { id: string; }, ResolveSchemaOptions<DefaultSchemaOptions>> & Omit<...> & { ...; }> | undefined'.
+  Types of property 'type' are incompatible.
+    Type '(typeof ObjectId)[]' is not assignable to type 'typeof Mixed | AnyArray<StringSchemaDefinition> | AnyArray<SchemaTypeOptions<string, ISuggestionDocument, Document<unknown, {}, ISuggestionDocument, { ...; }, ResolveSchemaOptions<...>> & Omit<...> & { ...; }>> | undefined'.
+      Type '(typeof ObjectId)[]' is not assignable to type 'StringSchemaDefinition[]'.
+        Type 'typeof ObjectId' is not assignable to type 'StringSchemaDefinition'.
+          Type 'typeof ObjectId' is missing the following properties from type 'StringConstructor': fromCharCode, fromCodePoint, raw
+src/lib/models/User.ts(41,9): error TS2322: Type '{ type: (typeof Schema.Types.ObjectId)[]; ref: string; default: never[]; }' is not assignable to type 'SchemaDefinitionProperty<string[], IUserDocument, Document<unknown, {}, IUserDocument, { id: string; }, ResolveSchemaOptions<DefaultSchemaOptions>> & Omit<...> & { ...; }> | undefined'.
+  Types of property 'type' are incompatible.
+    Type '(typeof ObjectId)[]' is not assignable to type 'typeof Mixed | AnyArray<StringSchemaDefinition> | AnyArray<SchemaTypeOptions<string, IUserDocument, Document<unknown, {}, IUserDocument, { ...; }, ResolveSchemaOptions<...>> & Omit<...> & { ...; }>> | undefined'.
+      Type '(typeof ObjectId)[]' is not assignable to type 'StringSchemaDefinition[]'.
+        Type 'typeof ObjectId' is not assignable to type 'StringSchemaDefinition'.
+          Type 'typeof ObjectId' is missing the following properties from type 'StringConstructor': fromCharCode, fromCodePoint, raw
+src/lib/models/User.ts(55,28): error TS2339: Property 'password' does not exist on type '(FlatRecord<ResolveTimestamps<ObtainDocumentType<any, RawDocType, ResolveSchemaOptions<TSchemaOptions>>, ResolveSchemaOptions<TSchemaOptions>>> & { ...; } & { ...; }) | ({ ...; } & ... 1 more ... & { ...; }) | (FlatRecord<...> & ... 1 more ... & { ...; }) | ({ ...; } & ... 1 more ... & Required<...>)'.
+  Property 'password' does not exist on type 'FlatRecord<ResolveTimestamps<ObtainDocumentType<any, RawDocType, ResolveSchemaOptions<TSchemaOptions>>, ResolveSchemaOptions<TSchemaOptions>>> & { ...; } & { ...; }'.
+src/lib/models/User.ts(72,10): error TS2339: Property 'password' does not exist on type 'IfAny<DocType, any, AddDefaultId<DocType, TVirtuals, TSchemaOptions> & TInstanceMethods extends Record<...> ? Document<...> & ... 1 more ... & AddDefaultId<...> : IfAny<...>>'.
+src/lib/models/User.ts(72,44): error TS2339: Property 'password' does not exist on type 'IfAny<DocType, any, AddDefaultId<DocType, TVirtuals, TSchemaOptions> & TInstanceMethods extends Record<...> ? Document<...> & ... 1 more ... & AddDefaultId<...> : IfAny<...>>'.
+src/lib/services/razorpay.ts(44,13): error TS2353: Object literal may only specify known properties, and 'customer_id' does not exist in type 'RazorpaySubscriptionCreateRequestBody | RazorpaySubscriptionLinkCreateRequestBody'.
+src/lib/services/razorpay.ts(51,42): error TS2339: Property 'id' does not exist on type 'Promise<RazorpaySubscription> & void'.
+src/lib/services/razorpay.ts(52,36): error TS2339: Property 'short_url' does not exist on type 'Promise<RazorpaySubscription> & void'.
+src/lib/services/razorpay.ts(53,34): error TS2339: Property 'status' does not exist on type 'Promise<RazorpaySubscription> & void'.
+src/lib/utils/auth.ts(16,16): error TS2769: No overload matches this call.
+  Overload 1 of 5, '(payload: string | object | Buffer<ArrayBufferLike>, secretOrPrivateKey: null, options?: (SignOptions & { algorithm: "none"; }) | undefined): string', gave the following error.
+    Argument of type 'string' is not assignable to parameter of type 'null'.
+  Overload 2 of 5, '(payload: string | object | Buffer<ArrayBufferLike>, secretOrPrivateKey: Buffer<ArrayBufferLike> | Secret | PrivateKeyInput | JsonWebKeyInput, options?: SignOptions | undefined): string', gave the following error.
+    Type 'string' is not assignable to type 'number | StringValue | undefined'.
+  Overload 3 of 5, '(payload: string | object | Buffer<ArrayBufferLike>, secretOrPrivateKey: Buffer<ArrayBufferLike> | Secret | PrivateKeyInput | JsonWebKeyInput, callback: SignCallback): void', gave the following error.
+    Object literal may only specify known properties, and 'expiresIn' does not exist in type 'SignCallback'.
+

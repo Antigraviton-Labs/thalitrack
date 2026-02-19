@@ -45,6 +45,28 @@ export const updateUserSchema = z.object({
         .optional(),
 });
 
+// Menu item schema
+const menuItemSchema = z.object({
+    dishName: z.string().min(1, 'Dish name is required').max(100, 'Dish name too long').trim(),
+    price: z.number().min(0, 'Price cannot be negative').default(0),
+});
+
+// Thali validation schemas
+const thaliItemSchema = z.object({
+    itemName: z.string().min(1, 'Item name is required').max(100, 'Item name too long').trim(),
+    description: z.string().max(200, 'Item description too long').trim().optional(),
+    price: z.number().min(0).max(10000).optional(),
+});
+
+const thaliSchema = z.object({
+    thaliId: z.string().min(1, 'Thali ID is required'),
+    thaliName: z.string().min(1, 'Thali name is required').max(100, 'Thali name too long').trim(),
+    description: z.string().max(300, 'Thali description too long').trim().optional(),
+    price: z.number().min(0, 'Price cannot be negative').max(10000, 'Price too high'),
+    items: z.array(thaliItemSchema).default([]),
+    createdAt: z.string().or(z.date()).optional(), // Allow createdAt
+});
+
 // Mess validation schemas
 export const createMessSchema = z.object({
     name: z
@@ -59,7 +81,7 @@ export const createMessSchema = z.object({
         .optional(),
     address: z
         .string()
-        .min(10, 'Address must be at least 10 characters')
+        .min(5, 'Address must be at least 5 characters')
         .max(300, 'Address too long')
         .trim(),
     latitude: z
@@ -80,18 +102,92 @@ export const createMessSchema = z.object({
         .int('Capacity must be a whole number')
         .min(1, 'Capacity must be at least 1')
         .max(1000, 'Capacity too large'),
-    monthlyPrice: z
-        .number()
-        .min(0, 'Price cannot be negative')
-        .max(50000, 'Price too high'),
     messType: z.enum(['veg', 'nonVeg', 'both']).default('veg'),
     photos: z
         .array(z.string().url('Invalid photo URL'))
         .max(10, 'Maximum 10 photos allowed')
         .optional(),
+    // New fields
+    foodLicenseUrl: z.string().optional(),
+    monthlyPlan: z.enum(['yes', 'no']).default('no'),
+    monthlyPrice: z
+        .number()
+        .min(0, 'Price cannot be negative')
+        .max(50000, 'Price too high')
+        .optional()
+        .default(0),
+    monthlyDescription: z
+        .string()
+        .max(500, 'Monthly description too long')
+        .trim()
+        .optional(),
+    openingTime: z
+        .string()
+        .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, 'Invalid time format (use HH:MM)'),
+    closingTime: z
+        .string()
+        .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, 'Invalid time format (use HH:MM)'),
+    tiffinService: z.enum(['yes', 'no']).default('no'),
+    menuEnabled: z.enum(['yes', 'no']).default('no'),
+    menuItems: z.array(menuItemSchema).optional().default([]),
+    thalis: z.array(thaliSchema).optional().default([]),
+    status: z.enum(['open', 'closed']).default('open'),
+}).transform((data) => {
+    // Toggle edge-case sanitization
+    if (data.monthlyPlan === 'no') {
+        data.monthlyPrice = 0;
+        data.monthlyDescription = undefined;
+    }
+    if (data.menuEnabled === 'no') {
+        data.menuItems = [];
+        data.thalis = [];
+    }
+    // Filter out empty dish names from menuItems
+    if (data.menuItems && data.menuItems.length > 0) {
+        data.menuItems = data.menuItems.filter(item => item.dishName.trim().length > 0);
+    }
+    return data;
 });
 
-export const updateMessSchema = createMessSchema.partial();
+// For update, all fields are optional - use the base object shape with partial  
+const createMessBaseSchema = z.object({
+    name: z.string().min(2).max(100).trim().optional(),
+    description: z.string().max(500).trim().optional(),
+    address: z.string().min(5).max(300).trim().optional(),
+    latitude: z.number().min(-90).max(90).optional(),
+    longitude: z.number().min(-180).max(180).optional(),
+    contactPhone: z.string().regex(phoneRegex).optional(),
+    contactWhatsApp: z.string().regex(phoneRegex).optional(),
+    capacity: z.number().int().min(1).max(1000).optional(),
+    messType: z.enum(['veg', 'nonVeg', 'both']).optional(),
+    photos: z.array(z.string().url()).max(10).optional(),
+    foodLicenseUrl: z.string().optional(),
+    monthlyPlan: z.enum(['yes', 'no']).optional(),
+    monthlyPrice: z.number().min(0).max(50000).optional(),
+    monthlyDescription: z.string().max(500).trim().optional(),
+    openingTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/).optional(),
+    closingTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/).optional(),
+    tiffinService: z.enum(['yes', 'no']).optional(),
+    menuEnabled: z.enum(['yes', 'no']).optional(),
+    menuItems: z.array(menuItemSchema).optional(),
+    thalis: z.array(thaliSchema).optional(),
+    status: z.enum(['open', 'closed']).optional(),
+}).transform((data) => {
+    if (data.monthlyPlan === 'no') {
+        data.monthlyPrice = 0;
+        data.monthlyDescription = undefined;
+    }
+    if (data.menuEnabled === 'no') {
+        data.menuItems = [];
+        data.thalis = [];
+    }
+    if (data.menuItems && data.menuItems.length > 0) {
+        data.menuItems = data.menuItems.filter(item => item.dishName.trim().length > 0);
+    }
+    return data;
+});
+
+export const updateMessSchema = createMessBaseSchema;
 
 // Menu validation schemas
 export const createMenuSchema = z.object({

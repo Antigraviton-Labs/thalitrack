@@ -1,0 +1,439 @@
+﻿Γû▓ Next.js 16.1.1 (Turbopack)
+- Environments: .env
+
+  Creating an optimized production build ...
+Γ£ô Compiled successfully in 6.0s
+  Skipping validation of types
+  Collecting page data using 11 workers ...
+node.exe : 
+(node:22956) 
+[MONGOOSE] Warning: 
+Duplicate schema 
+index on {"email":1} 
+found. This is often 
+due to declaring an 
+index using both 
+"index: true" and 
+"schema.index()". 
+Please remove the 
+duplicate index 
+definition.
+At C:\Program Files\n
+odejs\npx.ps1:29 
+char:3
++   & $NODE_EXE 
+$NPX_CLI_JS $args
++   ~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~
+    + CategoryInfo   
+           : NotSpe  
+  cified: ((node:2   
+ 2956) [M...dex d    
+efinition.:Strin    
+g) [], RemoteExc    
+eption
+    + FullyQualified 
+   ErrorId : Native  
+  CommandError
+ 
+(Use `node 
+--trace-warnings 
+...` to show where 
+the warning was 
+created)
+(node:22956) 
+[MONGOOSE] Warning: 
+Duplicate schema 
+index on 
+{"menuId":1} found. 
+This is often due to 
+declaring an index 
+using both "index: 
+true" and 
+"schema.index()". 
+Please remove the 
+duplicate index 
+definition.
+(node:17804) 
+[MONGOOSE] Warning: 
+Duplicate schema 
+index on {"email":1} 
+found. This is often 
+due to declaring an 
+index using both 
+"index: true" and 
+"schema.index()". 
+Please remove the 
+duplicate index 
+definition.
+(Use `node 
+--trace-warnings 
+...` to show where 
+the warning was 
+created)
+(node:17804) 
+[MONGOOSE] Warning: 
+Duplicate schema 
+index on 
+{"menuId":1} found. 
+This is often due to 
+declaring an index 
+using both "index: 
+true" and 
+"schema.index()". 
+Please remove the 
+duplicate index 
+definition.
+(node:3840) 
+[MONGOOSE] Warning: 
+Duplicate schema 
+index on {"email":1} 
+found. This is often 
+due to declaring an 
+index using both 
+"index: true" and 
+"schema.index()". 
+Please remove the 
+duplicate index 
+definition.
+(Use `node 
+--trace-warnings 
+...` to show where 
+the warning was 
+created)
+(node:3840) 
+[MONGOOSE] Warning: 
+Duplicate schema 
+index on 
+{"menuId":1} found. 
+This is often due to 
+declaring an index 
+using both "index: 
+true" and 
+"schema.index()". 
+Please remove the 
+duplicate index 
+definition.
+(node:26068) 
+[MONGOOSE] Warning: 
+Duplicate schema 
+index on {"email":1} 
+found. This is often 
+due to declaring an 
+index using both 
+"index: true" and 
+"schema.index()". 
+Please remove the 
+duplicate index 
+definition.
+(Use `node 
+--trace-warnings 
+...` to show where 
+the warning was 
+created)
+(node:26068) 
+[MONGOOSE] Warning: 
+Duplicate schema 
+index on 
+{"menuId":1} found. 
+This is often due to 
+declaring an index 
+using both "index: 
+true" and 
+"schema.index()". 
+Please remove the 
+duplicate index 
+definition.
+(node:22252) 
+[MONGOOSE] Warning: 
+Duplicate schema 
+index on {"email":1} 
+found. This is often 
+due to declaring an 
+index using both 
+"index: true" and 
+"schema.index()". 
+Please remove the 
+duplicate index 
+definition.
+(Use `node 
+--trace-warnings 
+...` to show where 
+the warning was 
+created)
+(node:22252) 
+[MONGOOSE] Warning: 
+Duplicate schema 
+index on 
+{"menuId":1} found. 
+This is often due to 
+declaring an index 
+using both "index: 
+true" and 
+"schema.index()". 
+Please remove the 
+duplicate index 
+definition.
+(node:24084) 
+[MONGOOSE] Warning: 
+Duplicate schema 
+index on {"email":1} 
+found. This is often 
+due to declaring an 
+index using both 
+"index: true" and 
+"schema.index()". 
+Please remove the 
+duplicate index 
+definition.
+(Use `node 
+--trace-warnings 
+...` to show where 
+the warning was 
+created)
+(node:24084) 
+[MONGOOSE] Warning: 
+Duplicate schema 
+index on 
+{"menuId":1} found. 
+This is often due to 
+declaring an index 
+using both "index: 
+true" and 
+"schema.index()". 
+Please remove the 
+duplicate index 
+definition.
+(node:5224) 
+[MONGOOSE] Warning: 
+Duplicate schema 
+index on {"email":1} 
+found. This is often 
+due to declaring an 
+index using both 
+"index: true" and 
+"schema.index()". 
+Please remove the 
+duplicate index 
+definition.
+(Use `node 
+--trace-warnings 
+...` to show where 
+the warning was 
+created)
+(node:5224) 
+[MONGOOSE] Warning: 
+Duplicate schema 
+index on 
+{"menuId":1} found. 
+This is often due to 
+declaring an index 
+using both "index: 
+true" and 
+"schema.index()". 
+Please remove the 
+duplicate index 
+definition.
+(node:22440) 
+[MONGOOSE] Warning: 
+Duplicate schema 
+index on {"email":1} 
+found. This is often 
+due to declaring an 
+index using both 
+"index: true" and 
+"schema.index()". 
+Please remove the 
+duplicate index 
+definition.
+(Use `node 
+--trace-warnings 
+...` to show where 
+the warning was 
+created)
+(node:22440) 
+[MONGOOSE] Warning: 
+Duplicate schema 
+index on 
+{"menuId":1} found. 
+This is often due to 
+declaring an index 
+using both "index: 
+true" and 
+"schema.index()". 
+Please remove the 
+duplicate index 
+definition.
+(node:19000) 
+[MONGOOSE] Warning: 
+Duplicate schema 
+index on {"email":1} 
+found. This is often 
+due to declaring an 
+index using both 
+"index: true" and 
+"schema.index()". 
+Please remove the 
+duplicate index 
+definition.
+(Use `node 
+--trace-warnings 
+...` to show where 
+the warning was 
+created)
+(node:19000) 
+[MONGOOSE] Warning: 
+Duplicate schema 
+index on 
+{"menuId":1} found. 
+This is often due to 
+declaring an index 
+using both "index: 
+true" and 
+"schema.index()". 
+Please remove the 
+duplicate index 
+definition.
+(node:24940) 
+[MONGOOSE] Warning: 
+Duplicate schema 
+index on {"email":1} 
+found. This is often 
+due to declaring an 
+index using both 
+"index: true" and 
+"schema.index()". 
+Please remove the 
+duplicate index 
+definition.
+(Use `node 
+--trace-warnings 
+...` to show where 
+the warning was 
+created)
+(node:24940) 
+[MONGOOSE] Warning: 
+Duplicate schema 
+index on 
+{"menuId":1} found. 
+This is often due to 
+declaring an index 
+using both "index: 
+true" and 
+"schema.index()". 
+Please remove the 
+duplicate index 
+definition.
+(node:8272) 
+[MONGOOSE] Warning: 
+Duplicate schema 
+index on {"email":1} 
+found. This is often 
+due to declaring an 
+index using both 
+"index: true" and 
+"schema.index()". 
+Please remove the 
+duplicate index 
+definition.
+(Use `node 
+--trace-warnings 
+...` to show where 
+the warning was 
+created)
+(node:8272) 
+[MONGOOSE] Warning: 
+Duplicate schema 
+index on 
+{"menuId":1} found. 
+This is often due to 
+declaring an index 
+using both "index: 
+true" and 
+"schema.index()". 
+Please remove the 
+duplicate index 
+definition.
+  Generating static pages using 11 workers (0/28) ...
+  Generating static pages using 11 workers (7/28) 
+Γ¿» 
+useSearchParams() 
+should be wrapped in 
+a suspense boundary 
+at page "/register". 
+Read more: https://ne
+xtjs.org/docs/message
+s/missing-suspense-wi
+th-csr-bailout
+    at Q (D:\thalitra
+ck-antigravity\.next\
+server\chunks\ssr\nod
+e_modules_next_920e77
+46._.js:2:2111)
+    at o (D:\thalitra
+ck-antigravity\.next\
+server\chunks\ssr\nod
+e_modules_next_920e77
+46._.js:4:5284)
+    at i (D:\thalitra
+ck-antigravity\.next\
+server\chunks\ssr\[ro
+ot-of-the-server]__cd
+85c45b._.js:1:8386)
+    at an (D:\thalitr
+ack-antigravity\node_
+modules\next\dist\com
+piled\next-server\app
+-page-turbo.runtime.p
+rod.js:2:84360)
+    at ai (D:\thalitr
+ack-antigravity\node_
+modules\next\dist\com
+piled\next-server\app
+-page-turbo.runtime.p
+rod.js:2:86179)
+    at al (D:\thalitr
+ack-antigravity\node_
+modules\next\dist\com
+piled\next-server\app
+-page-turbo.runtime.p
+rod.js:2:107953)
+    at as (D:\thalitr
+ack-antigravity\node_
+modules\next\dist\com
+piled\next-server\app
+-page-turbo.runtime.p
+rod.js:2:105368)
+    at aa (D:\thalitr
+ack-antigravity\node_
+modules\next\dist\com
+piled\next-server\app
+-page-turbo.runtime.p
+rod.js:2:84712)
+    at ai (D:\thalitr
+ack-antigravity\node_
+modules\next\dist\com
+piled\next-server\app
+-page-turbo.runtime.p
+rod.js:2:86228)
+    at ai (D:\thalitr
+ack-antigravity\node_
+modules\next\dist\com
+piled\next-server\app
+-page-turbo.runtime.p
+rod.js:2:104708)
+Error occurred 
+prerendering page 
+"/register". Read 
+more: https://nextjs.
+org/docs/messages/pre
+render-error
+Export encountered 
+an error on /(auth)/r
+egister/page: 
+/register, exiting 
+the build.
+Γ¿» Next.js build 
+worker exited with 
+code: 1 and signal: 
+null

@@ -195,6 +195,8 @@ export async function GET(request: NextRequest) {
         const queryFilter: any = {
             isApproved: true,
             isActive: true,
+            status: 'open',
+            thalis: { $exists: true, $ne: [] },
         };
 
         // Build sort
@@ -371,7 +373,7 @@ export async function POST(request: NextRequest) {
 
         const { latitude, longitude, ...messData } = validation.data;
 
-        // Create mess
+        // Create mess with all fields (new fields are already sanitized by validator transform)
         const mess = await Mess.create({
             ...messData,
             ownerId: userId,

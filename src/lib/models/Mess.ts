@@ -69,11 +69,132 @@ const messSchema = new Schema<IMessDocument>(
             min: [1, 'Capacity must be at least 1'],
             max: [1000, 'Capacity cannot exceed 1000'],
         },
+        foodLicenseUrl: {
+            type: String,
+            trim: true,
+        },
+        monthlyPlan: {
+            type: String,
+            enum: ['yes', 'no'],
+            default: 'no',
+            required: true,
+        },
         monthlyPrice: {
             type: Number,
-            required: [true, 'Monthly price is required'],
+            default: 0,
             min: [0, 'Price cannot be negative'],
             max: [50000, 'Price cannot exceed 50000'],
+        },
+        monthlyDescription: {
+            type: String,
+            trim: true,
+            maxlength: [500, 'Monthly description cannot exceed 500 characters'],
+        },
+        openingTime: {
+            type: String,
+            required: [true, 'Opening time is required'],
+            trim: true,
+        },
+        closingTime: {
+            type: String,
+            required: [true, 'Closing time is required'],
+            trim: true,
+        },
+        tiffinService: {
+            type: String,
+            enum: ['yes', 'no'],
+            default: 'no',
+            required: true,
+        },
+        menuEnabled: {
+            type: String,
+            enum: ['yes', 'no'],
+            default: 'no',
+            required: true,
+        },
+        menuItems: {
+            type: [{
+                dishName: {
+                    type: String,
+                    required: true,
+                    trim: true,
+                    maxlength: [100, 'Dish name cannot exceed 100 characters'],
+                },
+                price: {
+                    type: Number,
+                    required: true,
+                    min: [0, 'Price cannot be negative'],
+                    default: 0,
+                },
+            }],
+            default: [],
+        },
+        thalis: {
+            type: [{
+                thaliId: {
+                    type: String,
+                    required: true,
+                },
+                thaliName: {
+                    type: String,
+                    required: true,
+                    trim: true,
+                    maxlength: [100, 'Thali name cannot exceed 100 characters'],
+                },
+                description: {
+                    type: String,
+                    trim: true,
+                    maxlength: [300, 'Thali description cannot exceed 300 characters'],
+                },
+                price: {
+                    type: Number,
+                    required: true,
+                    min: [0, 'Price cannot be negative'],
+                    max: [10000, 'Price cannot exceed 10000'],
+                },
+                items: {
+                    type: [{
+                        itemName: {
+                            type: String,
+                            required: true,
+                            trim: true,
+                            maxlength: [100, 'Item name cannot exceed 100 characters'],
+                        },
+                        description: {
+                            type: String,
+                            trim: true,
+                            maxlength: [200, 'Item description cannot exceed 200 characters'],
+                        },
+                        price: {
+                            type: Number,
+                            min: [0, 'Price cannot be negative'],
+                            max: [10000, 'Price cannot exceed 10000'],
+                        },
+                    }],
+                    default: [],
+                },
+                createdAt: {
+                    type: Date,
+                    default: Date.now,
+                },
+                averageRating: {
+                    type: Number,
+                    default: 0,
+                    min: 0,
+                    max: 5,
+                },
+                totalRatings: {
+                    type: Number,
+                    default: 0,
+                    min: 0,
+                },
+            }],
+            default: [],
+        },
+        status: {
+            type: String,
+            enum: ['open', 'closed'],
+            default: 'open',
         },
         messType: {
             type: String,
@@ -133,8 +254,8 @@ messSchema.index({ location: '2dsphere' });
 messSchema.index({ name: 'text', description: 'text', address: 'text' });
 
 // Compound indexes for common queries
-messSchema.index({ isApproved: 1, isActive: 1 });
-messSchema.index({ averageRating: -1 });
+messSchema.index({ status: 1, isApproved: 1, isActive: 1 });
+messSchema.index({ status: 1, averageRating: -1 });
 messSchema.index({ monthlyPrice: 1 });
 
 const Mess: Model<IMessDocument> =

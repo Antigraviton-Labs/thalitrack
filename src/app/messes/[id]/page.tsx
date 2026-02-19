@@ -8,12 +8,13 @@ import { Footer } from '@/components/layouts';
 import { StarRating } from '@/components/ui';
 import { useAuth } from '@/hooks';
 import { IMess, IMenu } from '@/types';
+import { getRelativeTime } from '@/lib/utils/helpers';
 
 interface PageProps {
     params: Promise<{ id: string }>;
 }
 
-interface MessDetails extends IMess {
+interface MessDetails extends Omit<IMess, 'menuItems' | 'thalis'> {
     suggestions?: Array<{
         _id: string;
         content: string;
@@ -22,6 +23,22 @@ interface MessDetails extends IMess {
         userId: { name: string };
     }>;
     todayMenu?: IMenu;
+    thalis?: {
+        _id: string;
+        thaliName: string;
+        description?: string;
+        price: number;
+        items: {
+            itemName: string;
+            description?: string;
+            price?: number;
+        }[];
+        createdAt?: string;
+    }[];
+    menuItems?: {
+        dishName: string;
+        price: number;
+    }[];
 }
 
 export default function MessDetailPage({ params }: PageProps) {
@@ -325,6 +342,9 @@ export default function MessDetailPage({ params }: PageProps) {
                                 </div>
                                 <h1 className="text-3xl md:text-4xl font-bold mb-2">{mess.name}</h1>
                                 <p className="text-muted">{mess.address}</p>
+                                <div className="flex items-center gap-2 text-sm mt-1 text-muted-foreground">
+                                    <span>🕒 {mess.openingTime} - {mess.closingTime}</span>
+                                </div>
                             </div>
 
                             {/* Rating & Price */}
@@ -355,7 +375,7 @@ export default function MessDetailPage({ params }: PageProps) {
                                             : 'text-muted hover:text-foreground'
                                             }`}
                                     >
-                                        📋 Today&apos;s Menu
+                                        📋 Menu
                                     </button>
                                     <button
                                         onClick={() => setActiveTab('suggestions')}
@@ -371,48 +391,106 @@ export default function MessDetailPage({ params }: PageProps) {
 
                             {/* Tab Content */}
                             {activeTab === 'menu' ? (
-                                <div className="space-y-6">
-                                    {menus.length > 0 ? (
-                                        <>
-                                            <div className="card">
-                                                <div className="flex items-center justify-between mb-4">
-                                                    <h3 className="font-semibold">Today&apos;s Thali Menu</h3>
-                                                    {menus[0].thaliPrice && (
-                                                        <span className="text-lg font-bold text-primary">
-                                                            ₹{menus[0].thaliPrice}
-                                                        </span>
-                                                    )}
+                                <div className="space-y-8">
+                                    {/* Today's Menu Section (if available) */}
+                                    {menus.length > 0 && (
+                                        <div className="card border-primary/20 bg-primary/5">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <div>
+                                                    <span className="badge badge-primary mb-2">Today&apos;s Special</span>
+                                                    <h3 className="font-semibold text-lg">Daily Menu</h3>
                                                 </div>
-                                                <ul className="space-y-2">
-                                                    {menus[0].items.map((item, index) => (
-                                                        <li key={index} className="flex items-center gap-2">
-                                                            <span className="text-success">✓</span>
-                                                            {item}
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                                {menus[0].description && (
-                                                    <p className="mt-4 text-muted">{menus[0].description}</p>
+                                                {menus[0].thaliPrice && (
+                                                    <span className="text-xl font-bold text-primary">
+                                                        ₹{menus[0].thaliPrice}
+                                                    </span>
                                                 )}
+                                            </div>
+                                            <ul className="grid sm:grid-cols-2 gap-3">
+                                                {menus[0].items.map((item, index) => (
+                                                    <li key={index} className="flex items-center gap-2">
+                                                        <span className="text-success">✓</span>
+                                                        {item}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                            {menus[0].description && (
+                                                <p className="mt-4 text-sm text-muted italic">{menus[0].description}</p>
+                                            )}
 
-                                                {/* Menu Rating */}
-                                                <div className="mt-6 pt-4 border-t border-border">
-                                                    <p className="text-sm text-muted mb-2">Rate today&apos;s menu:</p>
+                                            {/* Menu Rating */}
+                                            <div className="mt-6 pt-4 border-t border-primary/10">
+                                                <div className="flex items-center justify-between">
+                                                    <p className="text-sm font-medium">Rate today&apos;s taste:</p>
                                                     <StarRating
                                                         rating={menuRating}
                                                         onRate={handleRateMenu}
                                                         readonly={!user || user.role !== 'student'}
                                                     />
-                                                    {ratingMessage && (
-                                                        <p className="text-sm text-primary mt-2">{ratingMessage}</p>
+                                                </div>
+                                                {ratingMessage && (
+                                                    <p className="text-sm text-primary mt-2 text-right">{ratingMessage}</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Thalis Section */}
+                                    {mess.thalis && mess.thalis.length > 0 && (
+                                        <div className="space-y-4">
+                                            <h3 className="font-semibold text-lg">Available Thalis</h3>
+                                            {mess.thalis.map((thali, index) => (
+                                                <div key={index} className="card">
+                                                    <div className="flex justify-between items-start mb-2">
+                                                        <div>
+                                                            <h4 className="font-bold text-lg">{thali.thaliName}</h4>
+                                                            {thali.description && (
+                                                                <p className="text-sm text-muted">{thali.description}</p>
+                                                            )}
+                                                            <p className="text-xs text-muted-foreground mt-1">
+                                                                Added {getRelativeTime(thali.createdAt || '')}
+                                                            </p>
+                                                        </div>
+                                                        <span className="font-bold text-primary text-lg">₹{thali.price}</span>
+                                                    </div>
+                                                    {thali.items && thali.items.length > 0 && (
+                                                        <div className="mt-3 p-3 bg-muted/20 rounded-lg">
+                                                            <p className="text-xs font-semibold uppercase text-muted mb-2">Includes:</p>
+                                                            <div className="grid grid-cols-2 gap-2">
+                                                                {thali.items.map((item, idx) => (
+                                                                    <div key={idx} className="text-sm flex items-center gap-2">
+                                                                        <span className="w-1.5 h-1.5 rounded-full bg-primary/60" />
+                                                                        <span>{item.itemName}</span>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
                                                     )}
                                                 </div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {/* Dishes Section */}
+                                    {mess?.menuItems && mess.menuItems.length > 0 && (
+                                        <div className="space-y-4 pt-4 border-t border-border">
+                                            <h3 className="font-semibold text-lg">Available Dishes</h3>
+                                            <div className="grid sm:grid-cols-2 gap-3">
+                                                {mess.menuItems.map((item, index) => (
+                                                    <div key={index} className="card p-3 flex justify-between items-center bg-muted/10">
+                                                        <span className="font-medium">{item.dishName}</span>
+                                                        <span className="font-bold text-primary">₹{item.price}</span>
+                                                    </div>
+                                                ))}
                                             </div>
-                                        </>
-                                    ) : (
+                                        </div>
+                                    )}
+
+                                    {/* Empty State */}
+                                    {(!menus.length && (!mess.thalis || !mess.thalis.length) && (!mess.menuItems || !mess.menuItems.length)) && (
                                         <div className="card text-center py-10">
                                             <span className="text-4xl mb-2 block">📋</span>
-                                            <p className="text-muted">No menu uploaded for today</p>
+                                            <p className="text-muted">No menu information available.</p>
                                         </div>
                                     )}
                                 </div>
@@ -536,7 +614,7 @@ export default function MessDetailPage({ params }: PageProps) {
                         </div>
                     </div>
                 </div>
-            </main>
+            </main >
             <Footer />
         </>
     );

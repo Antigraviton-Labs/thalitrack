@@ -22,6 +22,10 @@ const ratingSchema = new Schema<IRatingDocument>(
             ref: 'Menu',
             index: true,
         },
+        thaliId: {
+            type: String,
+            index: true,
+        },
         rating: {
             type: Number,
             required: [true, 'Rating is required'],
@@ -30,7 +34,7 @@ const ratingSchema = new Schema<IRatingDocument>(
         },
         type: {
             type: String,
-            enum: ['mess', 'menu'],
+            enum: ['mess', 'menu', 'thali'],
             required: [true, 'Rating type is required'],
         },
         date: {

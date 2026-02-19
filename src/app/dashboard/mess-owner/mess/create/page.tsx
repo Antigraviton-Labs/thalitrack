@@ -4,6 +4,11 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/hooks';
+import LocationPickerModal from '@/components/LocationPickerModal';
+
+interface MenuItem {
+    dishName: string;
+}
 
 export default function CreateMessPage() {
     const router = useRouter();
@@ -18,36 +23,139 @@ export default function CreateMessPage() {
         contactPhone: '',
         contactWhatsApp: '',
         capacity: '',
-        monthlyPrice: '',
         messType: 'veg' as 'veg' | 'nonVeg' | 'both',
+        // New fields
+        foodLicenseUrl: '',
+        monthlyPlan: 'no' as 'yes' | 'no',
+        monthlyPrice: '',
+        monthlyDescription: '',
+        openingTime: '11:00',
+        closingTime: '21:00',
+        tiffinService: 'no' as 'yes' | 'no',
+        menuEnabled: 'no' as 'yes' | 'no',
     });
+
+    const [menuItems, setMenuItems] = useState<MenuItem[]>([
+        { dishName: '' },
+    ]);
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
-    const [isGettingLocation, setIsGettingLocation] = useState(false);
+    const [showLocationPicker, setShowLocationPicker] = useState(false);
 
-    // Get current location
-    const getCurrentLocation = () => {
-        if (!navigator.geolocation) {
-            setError('Geolocation is not supported by your browser');
+    // Food license upload state
+    const [licenseFile, setLicenseFile] = useState<File | null>(null);
+    const [licensePreview, setLicensePreview] = useState('');
+    const [isUploadingLicense, setIsUploadingLicense] = useState(false);
+
+    // Handle food license file selection
+    const handleLicenseFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Validate file size (5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            setError('Food license file must be under 5MB');
             return;
         }
 
-        setIsGettingLocation(true);
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                setFormData((prev) => ({
-                    ...prev,
-                    latitude: position.coords.latitude.toString(),
-                    longitude: position.coords.longitude.toString(),
-                }));
-                setIsGettingLocation(false);
-            },
-            (error) => {
-                setError('Failed to get location: ' + error.message);
-                setIsGettingLocation(false);
+        // Validate file type
+        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+        if (!allowedTypes.includes(file.type)) {
+            setError('Allowed file types: PDF, JPG, PNG, WebP');
+            return;
+        }
+
+        setError('');
+        setLicenseFile(file);
+
+        // Preview for images
+        if (file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = (ev) => setLicensePreview(ev.target?.result as string);
+            reader.readAsDataURL(file);
+        } else {
+            setLicensePreview('');
+        }
+    };
+
+    // Upload food license to Cloudinary
+    const uploadFoodLicense = async (): Promise<string> => {
+        if (!licenseFile) return formData.foodLicenseUrl;
+
+        setIsUploadingLicense(true);
+        try {
+            const reader = new FileReader();
+            const base64 = await new Promise<string>((resolve) => {
+                reader.onload = () => resolve(reader.result as string);
+                reader.readAsDataURL(licenseFile);
+            });
+
+            const response = await fetch('/api/upload', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ type: 'food-license', file: base64 }),
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                return result.data.file.url;
+            } else {
+                throw new Error(result.error || 'Failed to upload food license');
             }
-        );
+        } finally {
+            setIsUploadingLicense(false);
+        }
+    };
+
+    // Handle location selection from map
+    const handleLocationSelect = (location: {
+        latitude: number;
+        longitude: number;
+        address: string;
+    }) => {
+        setFormData((prev) => ({
+            ...prev,
+            latitude: location.latitude.toString(),
+            longitude: location.longitude.toString(),
+            address: location.address,
+        }));
+    };
+
+    // Menu items management
+    const addMenuItem = () => {
+        setMenuItems([...menuItems, { dishName: '' }]);
+    };
+
+    const removeMenuItem = (index: number) => {
+        if (menuItems.length > 1) {
+            setMenuItems(menuItems.filter((_, i) => i !== index));
+        }
+    };
+
+    const updateMenuItem = (index: number, field: 'dishName', value: string) => {
+        const updated = [...menuItems];
+        updated[index][field] = value;
+        setMenuItems(updated);
+    };
+
+    // Toggle handlers with edge-case clearing
+    const handleMonthlyPlanToggle = (value: 'yes' | 'no') => {
+        setFormData((prev) => ({
+            ...prev,
+            monthlyPlan: value,
+            ...(value === 'no' ? { monthlyPrice: '', monthlyDescription: '' } : {}),
+        }));
+    };
+
+    const handleMenuToggle = (value: 'yes' | 'no') => {
+        setFormData((prev) => ({ ...prev, menuEnabled: value }));
+        if (value === 'no') {
+            setMenuItems([{ dishName: '' }]);
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -56,19 +164,68 @@ export default function CreateMessPage() {
         setError('');
 
         try {
+            // Validate required fields
+            if (!formData.address.trim()) {
+                setError('Please enter your mess address');
+                setIsSubmitting(false);
+                return;
+            }
+
+            if (!formData.openingTime || !formData.closingTime) {
+                setError('Please set opening and closing times');
+                setIsSubmitting(false);
+                return;
+            }
+
+            // Upload food license if selected
+            let foodLicenseUrl = formData.foodLicenseUrl;
+            if (licenseFile) {
+                foodLicenseUrl = await uploadFoodLicense();
+            }
+
+            // Prepare menu items
+            const cleanedMenuItems = formData.menuEnabled === 'yes'
+                ? menuItems
+                    .filter((item) => item.dishName.trim().length > 0)
+                    .map((item) => ({
+                        dishName: item.dishName.trim(),
+                    }))
+                : [];
+
+            const payload = {
+                name: formData.name.trim(),
+                description: formData.description.trim(),
+                address: formData.address.trim(),
+                latitude: parseFloat(formData.latitude) || 18.5204,
+                longitude: parseFloat(formData.longitude) || 73.8567,
+                contactPhone: formData.contactPhone.trim(),
+                contactWhatsApp: formData.contactWhatsApp.trim() || undefined,
+                capacity: parseInt(formData.capacity),
+                messType: formData.messType,
+                foodLicenseUrl: foodLicenseUrl || undefined,
+                monthlyPlan: formData.monthlyPlan,
+                monthlyPrice:
+                    formData.monthlyPlan === 'yes'
+                        ? parseFloat(formData.monthlyPrice) || 0
+                        : 0,
+                monthlyDescription:
+                    formData.monthlyPlan === 'yes'
+                        ? formData.monthlyDescription.trim()
+                        : undefined,
+                openingTime: formData.openingTime,
+                closingTime: formData.closingTime,
+                tiffinService: formData.tiffinService,
+                menuEnabled: formData.menuEnabled,
+                menuItems: cleanedMenuItems,
+            };
+
             const response = await fetch('/api/messes', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`,
                 },
-                body: JSON.stringify({
-                    ...formData,
-                    latitude: parseFloat(formData.latitude),
-                    longitude: parseFloat(formData.longitude),
-                    capacity: parseInt(formData.capacity),
-                    monthlyPrice: parseFloat(formData.monthlyPrice),
-                }),
+                body: JSON.stringify(payload),
             });
 
             const result = await response.json();
@@ -133,7 +290,12 @@ export default function CreateMessPage() {
                         </div>
                     )}
 
-                    {/* Basic Info */}
+                    {/* ── Basic Info ── */}
+                    <div className="space-y-1">
+                        <h3 className="text-lg font-semibold flex items-center gap-2">🏪 Basic Info</h3>
+                        <div className="h-px bg-border" />
+                    </div>
+
                     <div>
                         <label className="label">Mess Name *</label>
                         <input
@@ -156,55 +318,107 @@ export default function CreateMessPage() {
                         />
                     </div>
 
+                    {/* ── Food License ── */}
+                    <div className="space-y-1">
+                        <h3 className="text-lg font-semibold flex items-center gap-2">📄 Food License</h3>
+                        <div className="h-px bg-border" />
+                    </div>
+
                     <div>
-                        <label className="label">Full Address *</label>
+                        <label className="label">Upload Food License (PDF / Image, max 5MB)</label>
+                        <div className="file-upload-area">
+                            <input
+                                type="file"
+                                accept=".pdf,.jpg,.jpeg,.png,.webp"
+                                onChange={handleLicenseFileChange}
+                                id="food-license-input"
+                                style={{ display: 'none' }}
+                            />
+                            <label
+                                htmlFor="food-license-input"
+                                className="btn btn-secondary"
+                                style={{ cursor: 'pointer', display: 'inline-flex' }}
+                            >
+                                {isUploadingLicense ? '⏳ Uploading...' : '📎 Choose File'}
+                            </label>
+                            {licenseFile && (
+                                <span style={{ marginLeft: '0.75rem', fontSize: '0.875rem', color: 'var(--muted)' }}>
+                                    {licenseFile.name} ({(licenseFile.size / 1024 / 1024).toFixed(2)} MB)
+                                </span>
+                            )}
+                        </div>
+                        {licensePreview && (
+                            <div style={{ marginTop: '0.5rem' }}>
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                    src={licensePreview}
+                                    alt="Food License Preview"
+                                    style={{
+                                        maxWidth: '200px',
+                                        maxHeight: '150px',
+                                        borderRadius: '0.5rem',
+                                        border: '1px solid var(--border)',
+                                    }}
+                                />
+                            </div>
+                        )}
+                    </div>
+
+                    {/* ── Location ── */}
+                    <div className="space-y-1">
+                        <h3 className="text-lg font-semibold flex items-center gap-2">📍 Location</h3>
+                        <div className="h-px bg-border" />
+                    </div>
+
+                    <div>
+                        <label className="label">Mess Address *</label>
                         <textarea
                             className="input"
-                            placeholder="e.g., Shop No. 5, Near XYZ College, ABC Road, City - 400001"
+                            placeholder="e.g., 123, Near Pune Station, Pune, Maharashtra 411001"
                             value={formData.address}
                             onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                             required
+                            style={{ minHeight: '80px' }}
                         />
+                        <button
+                            type="button"
+                            onClick={() => setShowLocationPicker(true)}
+                            className="btn btn-secondary"
+                            style={{
+                                marginTop: '0.5rem',
+                                width: '100%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '0.5rem',
+                                padding: '0.75rem 1rem',
+                                background: 'linear-gradient(135deg, rgba(124,58,237,0.1), rgba(99,102,241,0.1))',
+                                border: '1px dashed var(--primary)',
+                                fontWeight: 600,
+                            }}
+                        >
+                            📍 Pick Location on Map
+                        </button>
+                        {formData.latitude && formData.longitude && (
+                            <div style={{
+                                display: 'flex',
+                                gap: '1rem',
+                                marginTop: '0.5rem',
+                                fontSize: '0.8rem',
+                                color: 'var(--muted)',
+                            }}>
+                                <span>✅ Lat: {parseFloat(formData.latitude).toFixed(6)}</span>
+                                <span>Lng: {parseFloat(formData.longitude).toFixed(6)}</span>
+                            </div>
+                        )}
                     </div>
 
-                    {/* Location */}
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="label">Latitude *</label>
-                            <input
-                                type="number"
-                                step="any"
-                                className="input"
-                                placeholder="18.5204"
-                                value={formData.latitude}
-                                onChange={(e) => setFormData({ ...formData, latitude: e.target.value })}
-                                required
-                            />
-                        </div>
-                        <div>
-                            <label className="label">Longitude *</label>
-                            <input
-                                type="number"
-                                step="any"
-                                className="input"
-                                placeholder="73.8567"
-                                value={formData.longitude}
-                                onChange={(e) => setFormData({ ...formData, longitude: e.target.value })}
-                                required
-                            />
-                        </div>
+                    {/* ── Contact ── */}
+                    <div className="space-y-1">
+                        <h3 className="text-lg font-semibold flex items-center gap-2">📞 Contact</h3>
+                        <div className="h-px bg-border" />
                     </div>
 
-                    <button
-                        type="button"
-                        onClick={getCurrentLocation}
-                        disabled={isGettingLocation}
-                        className="btn btn-secondary w-full"
-                    >
-                        {isGettingLocation ? '📍 Getting Location...' : '📍 Use My Current Location'}
-                    </button>
-
-                    {/* Contact */}
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="label">Contact Phone *</label>
@@ -229,7 +443,12 @@ export default function CreateMessPage() {
                         </div>
                     </div>
 
-                    {/* Details */}
+                    {/* ── Capacity & Mess Type ── */}
+                    <div className="space-y-1">
+                        <h3 className="text-lg font-semibold flex items-center gap-2">🍽️ Mess Details</h3>
+                        <div className="h-px bg-border" />
+                    </div>
+
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="label">Seating Capacity *</label>
@@ -240,40 +459,220 @@ export default function CreateMessPage() {
                                 value={formData.capacity}
                                 onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
                                 required
+                                min="1"
+                                max="1000"
                             />
                         </div>
                         <div>
-                            <label className="label">Monthly Price (₹) *</label>
-                            <input
-                                type="number"
+                            <label className="label">Mess Type *</label>
+                            <select
                                 className="input"
-                                placeholder="1500"
-                                value={formData.monthlyPrice}
-                                onChange={(e) => setFormData({ ...formData, monthlyPrice: e.target.value })}
+                                value={formData.messType}
+                                onChange={(e) => setFormData({ ...formData, messType: e.target.value as 'veg' | 'nonVeg' | 'both' })}
+                            >
+                                <option value="veg">🥬 Vegetarian Only</option>
+                                <option value="nonVeg">🍗 Non-Vegetarian Only</option>
+                                <option value="both">🍽️ Both Veg & Non-Veg</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* ── Opening / Closing Time ── */}
+                    <div className="space-y-1">
+                        <h3 className="text-lg font-semibold flex items-center gap-2">🕐 Timings</h3>
+                        <div className="h-px bg-border" />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="label">Opening Time *</label>
+                            <input
+                                type="time"
+                                className="input"
+                                value={formData.openingTime}
+                                onChange={(e) => setFormData({ ...formData, openingTime: e.target.value })}
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label className="label">Closing Time *</label>
+                            <input
+                                type="time"
+                                className="input"
+                                value={formData.closingTime}
+                                onChange={(e) => setFormData({ ...formData, closingTime: e.target.value })}
                                 required
                             />
                         </div>
                     </div>
 
-                    <div>
-                        <label className="label">Mess Type *</label>
-                        <select
-                            className="input"
-                            value={formData.messType}
-                            onChange={(e) => setFormData({ ...formData, messType: e.target.value as 'veg' | 'nonVeg' | 'both' })}
-                        >
-                            <option value="veg">🥬 Vegetarian Only</option>
-                            <option value="nonVeg">🍗 Non-Vegetarian Only</option>
-                            <option value="both">🍽️ Both Veg & Non-Veg</option>
-                        </select>
+                    {/* ── Monthly Plan Toggle ── */}
+                    <div className="space-y-1">
+                        <h3 className="text-lg font-semibold flex items-center gap-2">💰 Monthly Plan</h3>
+                        <div className="h-px bg-border" />
                     </div>
 
+                    <div>
+                        <label className="label">Do you have a Monthly Plan? *</label>
+                        <div className="toggle-group">
+                            <button
+                                type="button"
+                                className={`toggle-btn ${formData.monthlyPlan === 'yes' ? 'active' : ''}`}
+                                onClick={() => handleMonthlyPlanToggle('yes')}
+                            >
+                                ✅ Yes
+                            </button>
+                            <button
+                                type="button"
+                                className={`toggle-btn ${formData.monthlyPlan === 'no' ? 'active' : ''}`}
+                                onClick={() => handleMonthlyPlanToggle('no')}
+                            >
+                                ❌ No
+                            </button>
+                        </div>
+                    </div>
+
+                    {formData.monthlyPlan === 'yes' && (
+                        <div className="animate-fadeIn" style={{ paddingLeft: '1rem', borderLeft: '3px solid var(--primary)' }}>
+                            <div>
+                                <label className="label">Monthly Price (₹) *</label>
+                                <input
+                                    type="number"
+                                    className="input"
+                                    placeholder="1500"
+                                    value={formData.monthlyPrice}
+                                    onChange={(e) => setFormData({ ...formData, monthlyPrice: e.target.value })}
+                                    required
+                                    min="0"
+                                    max="50000"
+                                />
+                            </div>
+                            <div style={{ marginTop: '0.75rem' }}>
+                                <label className="label">Short Description about Monthly Plan</label>
+                                <textarea
+                                    className="input"
+                                    placeholder="e.g., Includes lunch and dinner, 2 rotis, 1 sabzi, rice, dal, salad"
+                                    value={formData.monthlyDescription}
+                                    onChange={(e) => setFormData({ ...formData, monthlyDescription: e.target.value })}
+                                    maxLength={500}
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ── Tiffin Service ── */}
+                    <div className="space-y-1">
+                        <h3 className="text-lg font-semibold flex items-center gap-2">🥡 Tiffin Service</h3>
+                        <div className="h-px bg-border" />
+                    </div>
+
+                    <div>
+                        <label className="label">Do you provide Tiffin Service? *</label>
+                        <div className="toggle-group">
+                            <button
+                                type="button"
+                                className={`toggle-btn ${formData.tiffinService === 'yes' ? 'active' : ''}`}
+                                onClick={() => setFormData({ ...formData, tiffinService: 'yes' })}
+                            >
+                                ✅ Yes
+                            </button>
+                            <button
+                                type="button"
+                                className={`toggle-btn ${formData.tiffinService === 'no' ? 'active' : ''}`}
+                                onClick={() => setFormData({ ...formData, tiffinService: 'no' })}
+                            >
+                                ❌ No
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* ── Menu Upload ── */}
+                    <div className="space-y-1">
+                        <h3 className="text-lg font-semibold flex items-center gap-2">📋 Menu</h3>
+                        <div className="h-px bg-border" />
+                    </div>
+
+                    <div>
+                        <label className="label">Do you want to upload Menu? *</label>
+                        <div className="toggle-group">
+                            <button
+                                type="button"
+                                className={`toggle-btn ${formData.menuEnabled === 'yes' ? 'active' : ''}`}
+                                onClick={() => handleMenuToggle('yes')}
+                            >
+                                ✅ Yes
+                            </button>
+                            <button
+                                type="button"
+                                className={`toggle-btn ${formData.menuEnabled === 'no' ? 'active' : ''}`}
+                                onClick={() => handleMenuToggle('no')}
+                            >
+                                ❌ No
+                            </button>
+                        </div>
+                    </div>
+
+                    {formData.menuEnabled === 'yes' && (
+                        <div className="animate-fadeIn" style={{ paddingLeft: '1rem', borderLeft: '3px solid var(--primary)' }}>
+                            {menuItems.map((item, index) => (
+                                <div
+                                    key={index}
+                                    className="flex gap-3 items-end"
+                                    style={{ marginBottom: '0.75rem' }}
+                                >
+                                    <div className="flex-1">
+                                        <label className="label" style={{ fontSize: '0.775rem' }}>
+                                            Dish Name {index + 1}
+                                        </label>
+                                        <input
+                                            type="text"
+                                            className="input"
+                                            placeholder="e.g., Paneer Butter Masala"
+                                            value={item.dishName}
+                                            onChange={(e) =>
+                                                updateMenuItem(index, 'dishName', e.target.value)
+                                            }
+                                        />
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => removeMenuItem(index)}
+                                        disabled={menuItems.length <= 1}
+                                        className="btn btn-secondary"
+                                        style={{
+                                            padding: '0.5rem 0.75rem',
+                                            fontSize: '1rem',
+                                            opacity: menuItems.length <= 1 ? 0.4 : 1,
+                                        }}
+                                        title="Remove dish"
+                                    >
+                                        🗑️
+                                    </button>
+                                </div>
+                            ))}
+
+                            <button
+                                type="button"
+                                onClick={addMenuItem}
+                                className="btn btn-outline"
+                                style={{ marginTop: '0.25rem' }}
+                            >
+                                ➕ Add More Dish
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Submit */}
                     <button
                         type="submit"
-                        disabled={isSubmitting}
+                        disabled={isSubmitting || isUploadingLicense}
                         className="btn btn-primary w-full"
                     >
-                        {isSubmitting ? 'Creating...' : 'Create Mess Profile'}
+                        {isSubmitting
+                            ? '⏳ Creating...'
+                            : isUploadingLicense
+                                ? '⏳ Uploading License...'
+                                : '🚀 Create Mess Profile'}
                     </button>
 
                     <p className="text-sm text-muted text-center">
@@ -281,6 +680,14 @@ export default function CreateMessPage() {
                     </p>
                 </form>
             </div>
+
+            <LocationPickerModal
+                isOpen={showLocationPicker}
+                onClose={() => setShowLocationPicker(false)}
+                onLocationSelect={handleLocationSelect}
+                initialLat={formData.latitude ? parseFloat(formData.latitude) : undefined}
+                initialLng={formData.longitude ? parseFloat(formData.longitude) : undefined}
+            />
         </div>
     );
 }

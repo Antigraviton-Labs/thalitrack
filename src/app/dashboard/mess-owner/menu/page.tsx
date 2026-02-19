@@ -1,87 +1,68 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks';
 
-export default function MenuManagePage() {
+interface ThaliItem {
+    id: string;
+    itemName: string;
+}
+
+interface Thali {
+    thaliId: string;
+    thaliName: string;
+    description?: string;
+    price: number;
+    items: ThaliItem[];
+    averageRating?: number;
+    totalRatings?: number;
+}
+
+
+// Helper to ensure stable IDs for React keys
+const normalizeThalis = (thalis: any[]): Thali[] => {
+    return (thalis || []).map((thali) => ({
+        ...thali,
+        thaliId: thali.thaliId || thali._id || crypto.randomUUID(),
+        items: (thali.items || []).map((item: any) => ({
+            ...item,
+            id: item.id || item._id || crypto.randomUUID(),
+        })),
+    }));
+};
+
+export default function ManageMenuPage() {
     const router = useRouter();
     const { user, token, isLoading: authLoading } = useAuth();
 
-    const [menuItems, setMenuItems] = useState<string[]>(['']);
-    const [description, setDescription] = useState('');
-    const [thaliPrice, setThaliPrice] = useState<number | ''>('');
-    const [existingMenu, setExistingMenu] = useState<{ items: string[]; description?: string; thaliPrice?: number; updatedAt?: string } | null>(null);
+    const [messId, setMessId] = useState<string>('');
+    const [thalis, setThalis] = useState<Thali[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
-    const [message, setMessage] = useState({ type: '', text: '' });
-    const [messId, setMessId] = useState<string | null>(null);
-    const [menuUploadTime, setMenuUploadTime] = useState<Date | null>(null);
+    const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-    // Helper function for relative time
-    const getRelativeTime = (date: Date | string): string => {
-        const now = new Date();
-        const past = new Date(date);
-        const diffMs = now.getTime() - past.getTime();
-        const diffSec = Math.floor(diffMs / 1000);
-        const diffMin = Math.floor(diffSec / 60);
-        const diffHour = Math.floor(diffMin / 60);
-        const diffDay = Math.floor(diffHour / 24);
-
-        if (diffSec < 60) return 'Just now';
-        if (diffMin === 1) return '1 minute ago';
-        if (diffMin < 60) return `${diffMin} minutes ago`;
-        if (diffHour === 1) return '1 hour ago';
-        if (diffHour < 24) return `${diffHour} hours ago`;
-        if (diffDay === 1) return '1 day ago';
-        return `${diffDay} days ago`;
-    };
-
-    // Check if menu is outdated (more than 24 hours old)
-    const isMenuOutdated = (): boolean => {
-        if (!menuUploadTime) return true;
-        const now = new Date();
-        const diffMs = now.getTime() - menuUploadTime.getTime();
-        const diffHours = diffMs / (1000 * 60 * 60);
-        return diffHours >= 24;
-    };
-
-    const fetchCurrentMenu = useCallback(async () => {
+    const fetchMess = useCallback(async () => {
         if (!token) return;
-
         try {
-            // First get the mess
-            const meResponse = await fetch('/api/auth/me', {
+            const res = await fetch('/api/mess-owner/analytics', {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            const meData = await meResponse.json();
-
-            if (meData.success && meData.data.mess) {
-                setMessId(meData.data.mess.id);
-
-                // Get today's menu
-                const menuResponse = await fetch(`/api/messes/${meData.data.mess.id}/menu`, {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
-                const menuData = await menuResponse.json();
-
-                if (menuData.success && menuData.data.length > 0) {
-                    const todayMenu = menuData.data[0];
-                    setExistingMenu(todayMenu);
-                    setMenuItems(todayMenu.items);
-                    setDescription(todayMenu.description || '');
-                    setThaliPrice(todayMenu.thaliPrice || '');
-                    // Store the upload time
-                    if (todayMenu.updatedAt) {
-                        setMenuUploadTime(new Date(todayMenu.updatedAt));
-                    } else if (todayMenu.createdAt) {
-                        setMenuUploadTime(new Date(todayMenu.createdAt));
-                    }
+            const result = await res.json();
+            if (result.success && result.data?.mess) {
+                setMessId(result.data.mess.id);
+                // Fetch full mess data for thalis
+                const messRes = await fetch(`/api/messes/${result.data.mess.id}`);
+                const messData = await messRes.json();
+                if (messData.success) {
+                    // Ensure every item has a stable id for React keying
+                    const loadedThalis = normalizeThalis(messData.data?.thalis);
+                    setThalis(loadedThalis);
                 }
             }
         } catch (error) {
-            console.error('Failed to fetch menu:', error);
+            console.error('Failed to fetch mess:', error);
         } finally {
             setIsLoading(false);
         }
@@ -92,79 +73,111 @@ export default function MenuManagePage() {
             router.push('/login');
             return;
         }
-
         if (!authLoading && user?.role !== 'messOwner') {
             router.push('/');
             return;
         }
-
         if (token) {
-            fetchCurrentMenu();
+            fetchMess();
         }
-    }, [authLoading, user, token, router, fetchCurrentMenu]);
+    }, [authLoading, user, token, router, fetchMess]);
 
-    const handleAddItem = () => {
-        if (menuItems.length < 20) {
-            setMenuItems([...menuItems, '']);
-        }
+    // Add new thali
+    const addThali = () => {
+        setThalis(prev => [
+            ...prev,
+            {
+                thaliId: crypto.randomUUID(),
+                thaliName: '',
+                description: '',
+                price: 0,
+                items: [{ id: crypto.randomUUID(), itemName: '' }],
+            },
+        ]);
     };
 
-    const handleRemoveItem = (index: number) => {
-        if (menuItems.length > 1) {
-            setMenuItems(menuItems.filter((_, i) => i !== index));
-        }
+    // Remove thali
+    const removeThali = (index: number) => {
+        if (!confirm('Remove this thali? This will also delete all its ratings.')) return;
+        setThalis(prev => prev.filter((_, i) => i !== index));
     };
 
-    const handleItemChange = (index: number, value: string) => {
-        const newItems = [...menuItems];
-        newItems[index] = value;
-        setMenuItems(newItems);
+    // Update thali field
+    const updateThali = (index: number, field: keyof Thali, value: string | number) => {
+        setThalis(prev => prev.map((t, i) => i === index ? { ...t, [field]: value } : t));
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    // Add item to thali
+    const addItem = (thaliIndex: number) => {
+        setThalis(prev => prev.map((t, i) =>
+            i === thaliIndex ? { ...t, items: [...t.items, { id: crypto.randomUUID(), itemName: '' }] } : t
+        ));
+    };
 
-        if (!messId || !token) {
-            setMessage({ type: 'error', text: 'Please create a mess profile first' });
-            return;
-        }
+    // Remove item from thali
+    const removeItem = (thaliIndex: number, itemIndex: number) => {
+        setThalis(prev => prev.map((t, i) =>
+            i === thaliIndex ? { ...t, items: t.items.filter((_, j) => j !== itemIndex) } : t
+        ));
+    };
 
-        const filteredItems = menuItems.filter((item) => item.trim() !== '');
+    // Update item field
+    const updateItem = (thaliIndex: number, itemIndex: number, field: keyof ThaliItem, value: string | number) => {
+        setThalis(prev => prev.map((t, i) =>
+            i === thaliIndex ? {
+                ...t,
+                items: t.items.map((item, j) => j === itemIndex ? { ...item, [field]: value } : item),
+            } : t
+        ));
+    };
 
-        if (filteredItems.length === 0) {
-            setMessage({ type: 'error', text: 'Please add at least one menu item' });
-            return;
+    // Save thalis (full replace)
+    const handleSave = async () => {
+        if (!token || !messId) return;
+
+        // Validate
+        for (const thali of thalis) {
+            if (!thali.thaliName.trim()) {
+                setSaveMessage({ type: 'error', text: 'All thalis must have a name.' });
+                return;
+            }
+            if (thali.price < 0) {
+                setSaveMessage({ type: 'error', text: 'Thali price cannot be negative.' });
+                return;
+            }
+            for (const item of thali.items) {
+                if (!item.itemName.trim()) {
+                    setSaveMessage({ type: 'error', text: `Thali "${thali.thaliName}" has items without names.` });
+                    return;
+                }
+            }
         }
 
         setIsSaving(true);
-        setMessage({ type: '', text: '' });
+        setSaveMessage(null);
 
         try {
-            const response = await fetch(`/api/messes/${messId}/menu`, {
-                method: 'POST',
+            const response = await fetch(`/api/messes/${messId}`, {
+                method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`,
                 },
-                body: JSON.stringify({
-                    date: new Date().toISOString(),
-                    items: filteredItems,
-                    description: description.trim() || undefined,
-                    thaliPrice: thaliPrice !== '' ? Number(thaliPrice) : undefined,
-                }),
+                body: JSON.stringify({ thalis }),
             });
 
-            const data = await response.json();
-
-            if (data.success) {
-                setMessage({ type: 'success', text: data.message || 'Menu saved successfully!' });
-                setExistingMenu({ items: filteredItems, description });
-                setMenuUploadTime(new Date()); // Update the upload time to now
+            const result = await response.json();
+            if (result.success) {
+                setSaveMessage({ type: 'success', text: 'Menu saved successfully!' });
+                // Update thalis with server response (preserves ratings)
+                if (result.data?.thalis) {
+                    setThalis(normalizeThalis(result.data.thalis));
+                }
             } else {
-                setMessage({ type: 'error', text: data.error || 'Failed to save menu' });
+                setSaveMessage({ type: 'error', text: result.error || 'Failed to save menu.' });
             }
         } catch {
-            setMessage({ type: 'error', text: 'Network error. Please try again.' });
+            setSaveMessage({ type: 'error', text: 'Network error. Please try again.' });
         } finally {
             setIsSaving(false);
         }
@@ -175,7 +188,7 @@ export default function MenuManagePage() {
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">
                     <span className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin inline-block mb-4" />
-                    <p className="text-muted">Loading...</p>
+                    <p className="text-muted">Loading menu...</p>
                 </div>
             </div>
         );
@@ -188,143 +201,141 @@ export default function MenuManagePage() {
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-16">
                         <Link href="/dashboard/mess-owner" className="flex items-center gap-2 text-muted hover:text-foreground">
-                            ← Back to Dashboard
+                            ← Dashboard
                         </Link>
+                        <h1 className="text-lg font-bold">Manage Menu</h1>
+                        <button
+                            onClick={handleSave}
+                            disabled={isSaving}
+                            className="btn btn-primary text-sm"
+                        >
+                            {isSaving ? 'Saving...' : 'Save All'}
+                        </button>
                     </div>
                 </div>
             </header>
 
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold mb-2">📋 Today&apos;s Menu</h1>
-                    <p className="text-muted">
-                        Update your daily thali menu. Students can see this on your mess profile.
-                    </p>
-                </div>
-
-                {message.text && (
-                    <div className={`p-4 rounded-lg mb-6 ${message.type === 'success' ? 'bg-success/10 text-success' : 'bg-error/10 text-error'
+                {/* Save Message */}
+                {saveMessage && (
+                    <div className={`p-3 rounded-lg mb-6 text-sm ${saveMessage.type === 'success'
+                        ? 'bg-success/10 text-success border border-success/30'
+                        : 'bg-error/10 text-error border border-error/30'
                         }`}>
-                        {message.text}
+                        {saveMessage.text}
                     </div>
                 )}
 
-                <form onSubmit={handleSubmit} className="card">
-                    <h2 className="text-xl font-semibold mb-4">Menu Items</h2>
-                    <p className="text-sm text-muted mb-4">
-                        Add items that are part of today&apos;s thali (e.g., Roti, Dal, Rice, Sabzi)
-                    </p>
-
-                    <div className="space-y-3 mb-6">
-                        {menuItems.map((item, index) => (
-                            <div key={index} className="flex gap-2">
-                                <input
-                                    type="text"
-                                    value={item}
-                                    onChange={(e) => handleItemChange(index, e.target.value)}
-                                    placeholder={`Item ${index + 1} (e.g., ${['Roti', 'Dal Fry', 'Jeera Rice', 'Mix Veg', 'Salad'][index % 5]})`}
-                                    className="input flex-1"
-                                    maxLength={100}
-                                />
-                                {menuItems.length > 1 && (
+                {/* Thali Cards */}
+                {thalis.length === 0 ? (
+                    <div className="card text-center py-12">
+                        <span className="text-5xl mb-4 block">🍽️</span>
+                        <h2 className="text-xl font-bold mb-2">No Thalis Yet</h2>
+                        <p className="text-muted mb-6">Add your first thali to start building your menu.</p>
+                        <button onClick={addThali} className="btn btn-primary">
+                            + Add First Thali
+                        </button>
+                    </div>
+                ) : (
+                    <div className="space-y-6">
+                        {thalis.map((thali, tIdx) => (
+                            <div key={thali.thaliId} className="card">
+                                {/* Thali Header */}
+                                <div className="flex items-start justify-between mb-4">
+                                    <div className="flex-1 grid sm:grid-cols-2 gap-3">
+                                        <div>
+                                            <label className="text-xs text-muted mb-1 block">Thali Name *</label>
+                                            <input
+                                                type="text"
+                                                className="input"
+                                                placeholder="e.g., Regular Thali"
+                                                value={thali.thaliName}
+                                                onChange={e => updateThali(tIdx, 'thaliName', e.target.value)}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-xs text-muted mb-1 block">Price (₹) *</label>
+                                            <input
+                                                type="number"
+                                                className="input"
+                                                placeholder="0"
+                                                value={thali.price || ''}
+                                                onChange={e => updateThali(tIdx, 'price', Number(e.target.value))}
+                                                min={0}
+                                            />
+                                        </div>
+                                    </div>
                                     <button
-                                        type="button"
-                                        onClick={() => handleRemoveItem(index)}
-                                        className="px-3 py-2 text-error hover:bg-error/10 rounded-lg transition-colors"
-                                        title="Remove item"
+                                        onClick={() => removeThali(tIdx)}
+                                        className="text-error/60 hover:text-error ml-3 mt-5 text-lg"
+                                        title="Remove thali"
                                     >
                                         ✕
                                     </button>
+                                </div>
+
+                                {/* Thali Description */}
+                                <div className="mb-4">
+                                    <label className="text-xs text-muted mb-1 block">Description (optional)</label>
+                                    <input
+                                        type="text"
+                                        className="input"
+                                        placeholder="Brief description of this thali"
+                                        value={thali.description || ''}
+                                        onChange={e => updateThali(tIdx, 'description', e.target.value)}
+                                    />
+                                </div>
+
+                                {/* Rating Badge (if rated) */}
+                                {thali.averageRating !== undefined && thali.averageRating > 0 && (
+                                    <div className="text-xs text-muted mb-3">
+                                        ⭐ {thali.averageRating.toFixed(1)} ({thali.totalRatings} ratings)
+                                    </div>
                                 )}
+
+                                {/* Items */}
+                                <div className="border-t border-border pt-3">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <h4 className="text-sm font-semibold text-muted">Items</h4>
+                                        <button
+                                            onClick={() => addItem(tIdx)}
+                                            className="text-xs text-primary hover:text-primary/80"
+                                        >
+                                            + Add Item
+                                        </button>
+                                    </div>
+                                    <div className="space-y-2">
+                                        {thali.items.map((item, iIdx) => (
+                                            <div key={item.id} className="flex items-center gap-2">
+                                                <input
+                                                    type="text"
+                                                    className="input flex-1"
+                                                    placeholder="e.g., Roti, Dal, Rice..."
+                                                    value={item.itemName}
+                                                    onChange={e => updateItem(tIdx, iIdx, 'itemName', e.target.value)}
+                                                />
+                                                <button
+                                                    onClick={() => removeItem(tIdx, iIdx)}
+                                                    className="text-error/50 hover:text-error text-sm px-1"
+                                                    disabled={thali.items.length <= 1}
+                                                >
+                                                    ✕
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
                         ))}
-                    </div>
 
-                    {menuItems.length < 20 && (
+                        {/* Add Thali Button */}
                         <button
-                            type="button"
-                            onClick={handleAddItem}
-                            className="btn btn-secondary mb-6"
+                            onClick={addThali}
+                            className="w-full card border-dashed border-2 hover:border-primary text-muted hover:text-foreground transition-colors text-center py-6"
                         >
-                            + Add Another Item
+                            <span className="text-2xl block mb-1">+</span>
+                            <span className="text-sm">Add Another Thali</span>
                         </button>
-                    )}
-
-                    <div className="mb-6">
-                        <label className="label">Description (Optional)</label>
-                        <textarea
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
-                            placeholder="Add any special notes about today's menu..."
-                            className="input min-h-[100px] resize-none"
-                            maxLength={500}
-                        />
-                    </div>
-
-                    <div className="mb-6">
-                        <label className="label">Thali Price (₹)</label>
-                        <input
-                            type="number"
-                            value={thaliPrice}
-                            onChange={(e) => setThaliPrice(e.target.value === '' ? '' : Number(e.target.value))}
-                            placeholder="e.g., 80"
-                            className="input w-full max-w-xs"
-                            min={0}
-                            max={10000}
-                        />
-                        <p className="text-xs text-muted mt-1">Today&apos;s thali price for students</p>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-4 border-t border-border">
-                        <div>
-                            <span className="text-sm text-muted">
-                                {menuItems.filter(i => i.trim()).length} items
-                            </span>
-                            {menuUploadTime && (
-                                <span className={`text-sm ml-3 ${isMenuOutdated() ? 'text-error font-medium' : 'text-muted'}`}>
-                                    Last updated: {getRelativeTime(menuUploadTime)}
-                                </span>
-                            )}
-                        </div>
-                        <button
-                            type="submit"
-                            disabled={isSaving}
-                            className={`btn ${isMenuOutdated() ? 'bg-error hover:bg-error/90 text-white' : 'btn-primary'}`}
-                        >
-                            {isSaving ? (
-                                <span className="flex items-center gap-2">
-                                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                    Saving...
-                                </span>
-                            ) : isMenuOutdated() ? (
-                                '⚠️ Update Today\'s Menu Now!'
-                            ) : existingMenu ? (
-                                'Update Menu'
-                            ) : (
-                                'Publish Menu'
-                            )}
-                        </button>
-                    </div>
-                </form>
-
-                {existingMenu && (
-                    <div className={`card mt-6 ${isMenuOutdated() ? 'bg-error/5 border-error/20' : 'bg-success/5 border-success/20'}`}>
-                        {isMenuOutdated() ? (
-                            <>
-                                <h3 className="font-semibold text-error mb-2">⚠️ Menu Outdated</h3>
-                                <p className="text-sm text-muted">
-                                    Your menu hasn't been updated in over 24 hours. Please update it so students can see today's thali!
-                                </p>
-                            </>
-                        ) : (
-                            <>
-                                <h3 className="font-semibold text-success mb-2">✓ Menu Published</h3>
-                                <p className="text-sm text-muted">
-                                    Your menu is live and students can see it on your profile.
-                                    {menuUploadTime && ` Updated ${getRelativeTime(menuUploadTime)}.`}
-                                </p>
-                            </>
-                        )}
                     </div>
                 )}
             </div>

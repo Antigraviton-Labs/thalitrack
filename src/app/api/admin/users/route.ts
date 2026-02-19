@@ -41,8 +41,8 @@ export async function GET(request: NextRequest) {
         const usersWithSubscription = await Promise.all(
             users.map(async (user) => {
                 if (user.role === 'messOwner') {
-                    const subscription = await Subscription.findOne({ messOwnerId: user._id });
-                    const mess = await Mess.findOne({ ownerId: user._id }).select('name isApproved');
+                    const subscription = await Subscription.findOne({ messOwnerId: user._id.toString() });
+                    const mess = await Mess.findOne({ ownerId: user._id.toString() }).select('name isApproved');
                     return {
                         ...user,
                         subscription: subscription ? {

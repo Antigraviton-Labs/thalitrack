@@ -13,6 +13,28 @@ export interface IUser {
     updatedAt: Date;
 }
 
+export interface IMenuItem {
+    dishName: string;
+    price: number;
+}
+
+export interface IThaliItem {
+    itemName: string;
+    description?: string;
+    price?: number;
+}
+
+export interface IThali {
+    thaliId: string; // stable UUID, never changes
+    thaliName: string;
+    description?: string;
+    price: number;
+    items: IThaliItem[];
+    averageRating: number;
+    totalRatings: number;
+    createdAt?: Date | string;
+}
+
 export interface IMess {
     _id: string;
     ownerId: string;
@@ -26,9 +48,21 @@ export interface IMess {
     contactPhone: string;
     contactWhatsApp?: string;
     capacity: number;
-    monthlyPrice: number;
     messType: 'veg' | 'nonVeg' | 'both';
     photos: string[];
+    // New fields
+    foodLicenseUrl?: string;
+    monthlyPlan: 'yes' | 'no';
+    monthlyPrice?: number;
+    monthlyDescription?: string;
+    openingTime: string;
+    closingTime: string;
+    tiffinService: 'yes' | 'no';
+    menuEnabled: 'yes' | 'no';
+    menuItems: IMenuItem[]; // @deprecated - use thalis instead
+    thalis: IThali[];
+    // Status fields
+    status: 'open' | 'closed';
     isApproved: boolean;
     isActive: boolean;
     viewCount: number;
@@ -57,8 +91,9 @@ export interface IRating {
     userId: string;
     messId: string;
     menuId?: string;
+    thaliId?: string; // stable thali UUID reference
     rating: number;
-    type: 'mess' | 'menu';
+    type: 'mess' | 'menu' | 'thali';
     date: Date;
     createdAt: Date;
 }
@@ -86,6 +121,7 @@ export interface ISuggestion {
     dislikes: string[]; // Array of user IDs who disliked
     likesCount: number;
     dislikesCount: number;
+    deletedAt?: Date | null; // soft delete
     createdAt: Date;
 }
 
@@ -95,7 +131,6 @@ export interface IAnalytics {
     date: Date;
     messViews: number;
     menuViews: number;
-    uniqueStudents: string[];
 }
 
 // API Response types

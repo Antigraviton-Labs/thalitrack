@@ -1,0 +1,163 @@
+﻿Γû▓ Next.js 16.1.1 (Turbopack)
+- Environments: .env
+
+  Creating an optimized production build ...
+Γ£ô Compiled successfully in 6.1s
+  Running TypeScript ...
+node.exe : Failed to 
+compile.
+At C:\Program Files\n
+odejs\npx.ps1:29 
+char:3
++   & $NODE_EXE 
+$NPX_CLI_JS $args
++   ~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~
+    + CategoryInfo   
+           : NotSpe  
+  cified: (Failed    
+ to compile.:Stri    
+ng) [], RemoteEx    
+ception
+    + FullyQualified 
+   ErrorId : Native  
+  CommandError
+ 
+
+./src/app/api/admin/u
+sers/route.ts:44:71
+Type error: No 
+overload matches 
+this call.
+  Overload 1 of 4, 
+'(filter?: 
+_QueryFilter<{ 
+status: 
+NonNullable<"trial" 
+| "active" | 
+"cancelled" | 
+"expired" | 
+"pending">; _id: 
+ObjectId; createdAt: 
+Date; updatedAt: 
+Date; 
+$assertPopulated: 
+<Paths = {}>(path: 
+string | string[], 
+values?: 
+Partial<...> | 
+undefined) => 
+Omit<...> & Paths; 
+... 222 more ...; 
+"schema.eventNames": 
+() => (string | 
+symbol)[]; }> | 
+undefined, 
+projection?: 
+ProjectionType<...> 
+| ... 1 more ... | 
+undefined, options?: 
+(QueryOptions<...> & 
+Abortable) | ... 1 
+more ... | 
+undefined): 
+Query<...>', gave 
+the following error.
+    Type 'ObjectId' 
+is not assignable to 
+type 'Condition<Apply
+BasicQueryCasting<str
+ing>> | undefined'.
+      Type 
+'ObjectId' is not 
+assignable to type 'F
+ilterOperators<string
+ | RegExp | string[] 
+| BSONRegExp | 
+null>'.
+        Types of 
+property 'id' are 
+incompatible.
+          Type 'Uint8
+Array<ArrayBufferLike
+>' is not assignable 
+to type 'undefined'.
+  Overload 2 of 4, 
+'(filter?: 
+Query<any, any, {}, 
+unknown, "find", 
+Record<string, 
+never>> | undefined, 
+projection?: Projecti
+onType<ISubscriptionD
+ocument> | null | 
+undefined, options?: 
+(QueryOptions<...> & 
+Abortable) | ... 1 
+more ... | 
+undefined): 
+Query<...>', gave 
+the following error.
+    Object literal 
+may only specify 
+known properties, 
+and 'messOwnerId' 
+does not exist in 
+type 'Query<any, 
+any, {}, unknown, 
+"find", 
+Record<string, 
+never>>'.
+
+[0m [90m 42 |[39m 
+            users[33
+m.[39mmap([36masync
+[39m (user) 
+[33m=>[39m {
+ [90m 43 |[39m     
+            
+[36mif[39m 
+(user[33m.[39mrole 
+[33m===[39m [32m'm
+essOwner'[39m) {
+[31m[1m>[22m[39m
+[90m 44 |[39m       
+              
+[36mconst[39m 
+subscription 
+[33m=[39m 
+[36mawait[39m [33m
+Subscription[39m[33
+m.[39mfindOne({ mess
+OwnerId[33m:[39m 
+user[33m.[39m_id 
+})[33m;[39m
+ [90m    |[39m     
+                     
+                     
+                     
+   
+[31m[1m^[22m[39m
+ [90m 45 |[39m     
+                
+[36mconst[39m mess 
+[33m=[39m 
+[36mawait[39m [33m
+Mess[39m[33m.[39mf
+indOne({ 
+ownerId[33m:[39m 
+user[33m.[39m_id })
+[33m.[39mselect([3
+2m'name isApproved'[
+39m)[33m;[39m
+ [90m 46 |[39m     
+                
+[36mreturn[39m {
+ [90m 47 |[39m     
+                    
+[33m...[39muser[33m
+,[39m[0m
+Next.js build worker 
+exited with code: 1 
+and signal: null
+

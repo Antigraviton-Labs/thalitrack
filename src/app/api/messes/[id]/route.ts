@@ -35,10 +35,11 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             date: { $gte: today },
         }).lean();
 
-        // Get recent suggestions (public only)
+        // Get recent suggestions (public only, exclude soft-deleted)
         const suggestions = await Suggestion.find({
             messId: id,
             isPublic: true,
+            deletedAt: null,
         })
             .sort({ createdAt: -1 })
             .limit(10)
@@ -54,11 +55,6 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             const analyticsUpdate: Record<string, unknown> = {
                 $inc: { messViews: 1 },
             };
-
-            // Only add to uniqueStudents if user is authenticated
-            if (userId) {
-                analyticsUpdate.$addToSet = { uniqueStudents: userId };
-            }
 
             await Analytics.findOneAndUpdate(
                 { messId: id, date: today },
@@ -118,7 +114,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
             return errorResponse(validation.errors.join(', '), 400);
         }
 
-        const { latitude, longitude, ...updateData } = validation.data;
+        const { latitude, longitude, thalis: newThalis, ...updateData } = validation.data;
 
         // Build update object
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -129,6 +125,36 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
                 type: 'Point',
                 coordinates: [longitude, latitude],
             };
+        }
+
+        // Handle thalis full-replace with orphaned rating cascade
+        if (newThalis !== undefined) {
+            // If menuEnabled is 'no', clear thalis
+            if (update.menuEnabled === 'no') {
+                update.thalis = [];
+            } else {
+                // Find orphaned thaliIds (old thalis not in new array)
+                const oldThaliIds = (mess.thalis || []).map((t: { thaliId: string }) => t.thaliId);
+                const newThaliIds = newThalis.map((t: { thaliId: string }) => t.thaliId);
+                const orphanedIds = oldThaliIds.filter((id: string) => !newThaliIds.includes(id));
+
+                // Cascade delete ratings for orphaned thalis
+                if (orphanedIds.length > 0) {
+                    await Rating.deleteMany({ messId: id, type: 'thali', thaliId: { $in: orphanedIds } });
+                }
+
+                // Preserve averageRating and totalRatings from existing thalis
+                update.thalis = newThalis.map((newT: { thaliId: string; thaliName: string; description?: string; price: number; items: unknown[]; createdAt?: string | Date }) => {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const existing = (mess.thalis || []).find((old: any) => old.thaliId === newT.thaliId);
+                    return {
+                        ...newT,
+                        averageRating: existing?.averageRating || 0,
+                        totalRatings: existing?.totalRatings || 0,
+                        createdAt: existing?.createdAt || new Date(), // Preserve or set creation time
+                    };
+                });
+            }
         }
 
         const updatedMess = await Mess.findByIdAndUpdate(

@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
 
         // Build query
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const query: Record<string, any> = { isPublic: true };
+        const query: Record<string, any> = { isPublic: true, deletedAt: null };
 
         if (messId) {
             // Get suggestions for a specific mess

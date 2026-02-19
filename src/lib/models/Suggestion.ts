@@ -48,6 +48,10 @@ const suggestionSchema = new Schema<ISuggestionDocument>(
             default: 0,
             min: 0,
         },
+        deletedAt: {
+            type: Date,
+            default: null,
+        },
     },
     {
         timestamps: true,

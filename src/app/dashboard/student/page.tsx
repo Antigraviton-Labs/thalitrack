@@ -22,6 +22,11 @@ interface Mess {
         updatedAt?: string;
         thaliPrice?: number;
     };
+    thalis?: {
+        thaliName: string;
+        price: number;
+    }[];
+    monthlyPlan?: 'yes' | 'no';
 }
 
 // Helper function for relative time
@@ -360,33 +365,42 @@ export default function StudentDashboard() {
                     {mess.description || mess.address}
                 </p>
 
-                {/* Menu Preview */}
-                {mess.todayMenu && mess.todayMenu.items.length > 0 && (
-                    <div className="mb-3 p-2 bg-background rounded-lg">
-                        <div className="flex items-center justify-between mb-1">
-                            <span className="text-xs font-medium">🍽️ Today's Menu</span>
-                            {mess.todayMenu.updatedAt && (
-                                <span className="text-xs text-muted">{getRelativeTime(mess.todayMenu.updatedAt)}</span>
-                            )}
+                {/* Thali Preview */}
+                {mess.thalis && mess.thalis.length > 0 && (
+                    <div className="mb-3 p-3 bg-muted/20 rounded-lg">
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <span className="text-xs font-semibold uppercase text-muted tracking-wider">Thali</span>
+                                <p className="font-medium text-foreground">{mess.thalis[0].thaliName}</p>
+                            </div>
+                            <div className="text-right">
+                                <span className="block font-bold text-lg text-primary">₹{mess.thalis[0].price}</span>
+                                {mess.thalis.length > 1 && (
+                                    <span className="text-[10px] px-1.5 py-0.5 bg-background rounded-full border border-border text-muted">
+                                        +{mess.thalis.length - 1} more
+                                    </span>
+                                )}
+                            </div>
                         </div>
-                        <p className="text-xs text-muted line-clamp-1">
-                            {mess.todayMenu.items.slice(0, 3).join(', ')}
-                            {mess.todayMenu.items.length > 3 ? ` +${mess.todayMenu.items.length - 3} more` : ''}
-                        </p>
                     </div>
                 )}
 
-                <div className="flex justify-between items-center">
-                    <div>
-                        <span className="font-bold gradient-text">₹{mess.monthlyPrice}/month</span>
-                        {mess.todayMenu?.thaliPrice && (
-                            <span className="text-xs text-muted ml-2">
-                                • Thali ₹{mess.todayMenu.thaliPrice}
-                            </span>
+                <div className="flex justify-between items-center border-t border-dashed border-border pt-3 mt-2">
+                    <div className="flex flex-col">
+                        {mess.monthlyPlan === 'yes' ? (
+                            <>
+                                <span className="text-[10px] uppercase text-muted font-medium">Monthly Plan</span>
+                                <span className="font-bold">₹{mess.monthlyPrice}/month</span>
+                            </>
+                        ) : (
+                            <span className="text-xs text-muted italic">No Monthly Plan Available</span>
                         )}
                     </div>
                     {mess.distance && (
-                        <span className="text-xs text-muted">{mess.distance.toFixed(1)} km</span>
+                        <div className="flex items-center gap-1 text-xs text-muted">
+                            <span>📍</span>
+                            <span>{mess.distance.toFixed(1)} km</span>
+                        </div>
                     )}
                 </div>
             </Link>

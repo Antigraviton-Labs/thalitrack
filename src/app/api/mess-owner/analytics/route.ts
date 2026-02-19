@@ -1,7 +1,18 @@
 import { NextRequest } from 'next/server';
 import { connectDB } from '@/lib/db';
-import { Analytics, Mess, Rating } from '@/lib/models';
+import { Analytics, Mess } from '@/lib/models';
 import { successResponse, errorResponse, getStartOfDay } from '@/lib/utils';
+
+// Helper: generate zero-filled date range array
+function generateDateRange(startDate: Date, endDate: Date): string[] {
+    const dates: string[] = [];
+    const current = new Date(startDate);
+    while (current <= endDate) {
+        dates.push(current.toISOString().slice(0, 10));
+        current.setDate(current.getDate() + 1);
+    }
+    return dates;
+}
 
 // GET /api/mess-owner/analytics - Get mess owner's analytics
 export async function GET(request: NextRequest) {
@@ -20,26 +31,63 @@ export async function GET(request: NextRequest) {
             return errorResponse('No mess found. Please create a mess first.', 404);
         }
 
-        const today = getStartOfDay();
-        const lastWeek = new Date(today);
-        lastWeek.setDate(lastWeek.getDate() - 7);
-        const lastMonth = new Date(today);
-        lastMonth.setDate(lastMonth.getDate() - 30);
+        // Determine period from query params
+        const { searchParams } = new URL(request.url);
+        const period = searchParams.get('period') || '7d'; // 'today', '7d', '30d'
 
-        // Get daily analytics for last 7 days
+        const today = getStartOfDay();
+        let startDate: Date;
+
+        switch (period) {
+            case 'today':
+                startDate = new Date(today);
+                break;
+            case '30d':
+                startDate = new Date(today);
+                startDate.setDate(startDate.getDate() - 29);
+                break;
+            case '7d':
+            default:
+                startDate = new Date(today);
+                startDate.setDate(startDate.getDate() - 6);
+                break;
+        }
+
+        // Get daily analytics for the period
         const dailyAnalytics = await Analytics.find({
-            messId: mess._id,
-            date: { $gte: lastWeek },
+            messId: mess._id.toString(),
+            date: { $gte: startDate },
         })
             .sort({ date: 1 })
             .lean();
 
-        // Get monthly totals
+        // Build analytics map for zero-fill
+        const analyticsMap: Record<string, { messViews: number; menuViews: number }> = {};
+        for (const a of dailyAnalytics) {
+            const key = new Date(a.date).toISOString().slice(0, 10);
+            analyticsMap[key] = {
+                messViews: a.messViews || 0,
+                menuViews: a.menuViews || 0,
+            };
+        }
+
+        // Generate zero-filled date range
+        const dateRange = generateDateRange(startDate, today);
+        const daily = dateRange.map((date) => ({
+            date,
+            messViews: analyticsMap[date]?.messViews || 0,
+            menuViews: analyticsMap[date]?.menuViews || 0,
+        }));
+
+        // Get monthly totals (always last 30 days for summary stats)
+        const last30 = new Date(today);
+        last30.setDate(last30.getDate() - 29);
+
         const monthlyTotals = await Analytics.aggregate([
             {
                 $match: {
-                    messId: mess._id,
-                    date: { $gte: lastMonth },
+                    messId: mess._id.toString(),
+                    date: { $gte: last30 },
                 },
             },
             {
@@ -47,47 +95,21 @@ export async function GET(request: NextRequest) {
                     _id: null,
                     totalMessViews: { $sum: '$messViews' },
                     totalMenuViews: { $sum: '$menuViews' },
-                    uniqueStudents: { $addToSet: '$uniqueStudents' },
                 },
             },
         ]);
 
-        // Get rating stats
-        const ratingStats = await Rating.aggregate([
-            { $match: { messId: mess._id } },
-            {
-                $group: {
-                    _id: '$type',
-                    averageRating: { $avg: '$rating' },
-                    totalRatings: { $sum: 1 },
-                    distribution: {
-                        $push: '$rating',
-                    },
-                },
-            },
-        ]);
-
-        // Calculate rating distribution
-        const ratingDistribution = ratingStats.reduce((acc, curr) => {
-            const distribution = curr.distribution.reduce(
-                (d: Record<number, number>, r: number) => {
-                    d[r] = (d[r] || 0) + 1;
-                    return d;
-                },
-                { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
-            );
-            acc[curr._id] = {
-                averageRating: Math.round(curr.averageRating * 10) / 10,
-                totalRatings: curr.totalRatings,
-                distribution,
-            };
-            return acc;
-        }, {} as Record<string, unknown>);
-
-        // Flatten unique students
-        const uniqueStudentCount = monthlyTotals[0]?.uniqueStudents
-            ? [...new Set(monthlyTotals[0].uniqueStudents.flat())].length
-            : 0;
+        // Calculate thali rating (average of all thalis' averageRating)
+        let thaliRating = 0;
+        let thaliTotalRatings = 0;
+        if (mess.thalis && mess.thalis.length > 0) {
+            const ratedThalis = mess.thalis.filter((t: { averageRating: number }) => t.averageRating > 0);
+            if (ratedThalis.length > 0) {
+                thaliRating = ratedThalis.reduce((sum: number, t: { averageRating: number }) => sum + t.averageRating, 0) / ratedThalis.length;
+                thaliRating = Math.round(thaliRating * 10) / 10;
+                thaliTotalRatings = ratedThalis.reduce((sum: number, t: { totalRatings: number }) => sum + t.totalRatings, 0);
+            }
+        }
 
         return successResponse({
             mess: {
@@ -95,22 +117,19 @@ export async function GET(request: NextRequest) {
                 name: mess.name,
                 averageRating: mess.averageRating,
                 totalRatings: mess.totalRatings,
+                thaliRating,
+                thaliTotalRatings,
                 viewCount: mess.viewCount,
                 isApproved: mess.isApproved,
+                status: mess.status || 'open',
+                menuEnabled: mess.menuEnabled || 'no',
             },
-            daily: dailyAnalytics.map((a) => ({
-                date: a.date,
-                messViews: a.messViews,
-                menuViews: a.menuViews,
-                uniqueStudents: a.uniqueStudents?.length || 0,
-            })),
+            daily,
             monthly: {
                 messViews: monthlyTotals[0]?.totalMessViews || 0,
                 menuViews: monthlyTotals[0]?.totalMenuViews || 0,
-                uniqueStudents: uniqueStudentCount,
                 totalViews: (monthlyTotals[0]?.totalMessViews || 0) + (monthlyTotals[0]?.totalMenuViews || 0),
             },
-            ratings: ratingDistribution,
         });
     } catch (error) {
         console.error('Analytics error:', error);

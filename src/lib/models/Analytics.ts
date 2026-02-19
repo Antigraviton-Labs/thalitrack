@@ -26,11 +26,7 @@ const analyticsSchema = new Schema<IAnalyticsDocument>(
             default: 0,
             min: 0,
         },
-        uniqueStudents: {
-            type: [Schema.Types.ObjectId],
-            ref: 'User',
-            default: [],
-        },
+        // uniqueStudents field removed — metric deprecated
     },
     {
         timestamps: true,

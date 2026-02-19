@@ -37,6 +37,27 @@ export async function uploadImage(
     }
 }
 
+// Upload any file type (PDF, images, etc.) - used for food license
+export async function uploadFile(
+    file: string,
+    folder: string = 'thalitrack'
+): Promise<UploadResult> {
+    try {
+        const result = await cloudinary.uploader.upload(file, {
+            folder,
+            resource_type: 'auto',
+        });
+
+        return {
+            url: result.secure_url,
+            publicId: result.public_id,
+        };
+    } catch (error) {
+        console.error('Cloudinary file upload error:', error);
+        throw new Error('Failed to upload file');
+    }
+}
+
 export async function uploadMultipleImages(
     files: string[],
     folder: string = 'thalitrack'
