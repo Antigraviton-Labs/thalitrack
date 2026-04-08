@@ -201,19 +201,33 @@ export default function HomePage() {
         {/* CTA Section */}
         <section className="py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="card bg-gradient-to-r from-primary to-secondary p-10 text-center text-white">
-              <h2 className="text-3xl sm:text-4xl font-bold mb-4">
+            <div
+              className="rounded-2xl p-10 sm:p-14 text-center"
+              style={{
+                background: 'linear-gradient(135deg, #1A1208 0%, #2D1E0E 50%, #1A1208 100%)',
+                border: '1.5px solid #E8DCC8',
+              }}
+            >
+              <h2 className="text-3xl sm:text-4xl font-bold mb-4" style={{ color: '#FFFFFF' }}>
                 Ready to Find Your Next Meal?
               </h2>
-              <p className="text-white/80 mb-8 max-w-xl mx-auto">
+              <p className="mb-8 max-w-xl mx-auto text-base sm:text-lg" style={{ color: '#C4B396' }}>
                 Join thousands of students who have already discovered the easier way
                 to find great food near them.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Link href="/discover" className="btn bg-white text-primary hover:bg-white/90 text-lg px-8 py-4">
+                <Link
+                  href="/discover"
+                  className="text-lg px-8 py-4 rounded-lg font-semibold transition-all hover:opacity-90"
+                  style={{ backgroundColor: '#E8861A', color: '#FFFFFF' }}
+                >
                   Find Messes Now
                 </Link>
-                <Link href="/register" className="btn border-2 border-white text-white hover:bg-white/10 text-lg px-8 py-4">
+                <Link
+                  href="/register"
+                  className="text-lg px-8 py-4 rounded-lg font-semibold transition-all hover:opacity-80"
+                  style={{ border: '2px solid #E8861A', color: '#E8861A', backgroundColor: 'transparent' }}
+                >
                   Create Account
                 </Link>
               </div>
