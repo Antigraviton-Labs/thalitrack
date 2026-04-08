@@ -9,6 +9,9 @@ export interface IUser {
     role: UserRole;
     isActive: boolean;
     savedMesses: string[]; // Array of mess IDs saved by user
+    resetPasswordOtp?: string;
+    resetPasswordToken?: string;
+    resetPasswordExpires?: Date;
     createdAt: Date;
     updatedAt: Date;
 }

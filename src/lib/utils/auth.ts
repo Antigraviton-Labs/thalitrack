@@ -1,4 +1,6 @@
 import jwt from 'jsonwebtoken';
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { JWTPayload, UserRole } from '@/types';
 
 const JWT_SECRET = process.env.JWT_SECRET!;
@@ -49,3 +51,40 @@ export const cookieOptions = {
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     path: '/',
 };
+
+/**
+ * Verifies the JWT token directly from the Authorization header and checks
+ * that the user has 'admin' role. Does NOT trust any client-sent headers.
+ *
+ * @returns Trusted admin user info, or a NextResponse with 401/403 error.
+ */
+export function requireAdmin(
+    request: NextRequest
+): { userId: string; email: string; role: UserRole } | NextResponse {
+    const authHeader = request.headers.get('authorization');
+    const token = getTokenFromHeader(authHeader || '');
+
+    if (!token) {
+        return NextResponse.json(
+            { success: false, error: 'Authentication required' },
+            { status: 401 }
+        );
+    }
+
+    const decoded = verifyToken(token);
+    if (!decoded) {
+        return NextResponse.json(
+            { success: false, error: 'Invalid or expired token' },
+            { status: 401 }
+        );
+    }
+
+    if (decoded.role !== 'admin') {
+        return NextResponse.json(
+            { success: false, error: 'Admin access required' },
+            { status: 403 }
+        );
+    }
+
+    return { userId: decoded.userId, email: decoded.email, role: decoded.role };
+}

@@ -1,34 +1,25 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #0f172a;
-  --primary: #7c3aed;
-  --primary-light: #a78bfa;
-  --primary-dark: #5b21b6;
-  --secondary: #f97316;
-  --accent: #06b6d4;
-  --success: #22c55e;
-  --warning: #f59e0b;
-  --error: #ef4444;
-  --muted: #64748b;
-  --border: #e2e8f0;
-  --card: #f8fafc;
+  --background: #FEF9F2;
+  --foreground: #1A1208;
+  --primary: #E8861A;
+  --primary-light: #FDF3E7;
+  --primary-dark: #C96F0C;
+  --secondary: #E8861A;
+  --accent: #E8861A;
+  --success: #2E7D52;
+  --success-light: #EAF5EE;
+  --warning: #856404;
+  --warning-bg: #FFF3CD;
+  --error: #C0392B;
+  --muted: #9C8866;
+  --text-secondary: #5C4A2A;
+  --border: #E8DCC8;
+  --card: #FFFFFF;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0f172a;
-    --foreground: #f1f5f9;
-    --primary: #a78bfa;
-    --primary-light: #c4b5fd;
-    --primary-dark: #7c3aed;
-    --secondary: #fb923c;
-    --border: #334155;
-    --card: #1e293b;
-    --muted: #94a3b8;
-  }
-}
+/* No dark mode — keep consistent warm theme for all users */
 
 @theme inline {
   --color-background: var(--background);
@@ -39,9 +30,12 @@
   --color-secondary: var(--secondary);
   --color-accent: var(--accent);
   --color-success: var(--success);
+  --color-success-light: var(--success-light);
   --color-warning: var(--warning);
+  --color-warning-bg: var(--warning-bg);
   --color-error: var(--error);
   --color-muted: var(--muted);
+  --color-text-secondary: var(--text-secondary);
   --color-border: var(--border);
   --color-card: var(--card);
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
@@ -67,6 +61,7 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+  font-size: 15px;
   line-height: 1.6;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
@@ -104,11 +99,11 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--card);
+  background: var(--primary-light);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--muted);
+  background: var(--border);
   border-radius: 4px;
 }
 
@@ -116,42 +111,45 @@ body {
   background: var(--primary);
 }
 
-/* Buttons */
+/* ============================
+   BUTTONS
+   ============================ */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  border-radius: 0.5rem;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  border-radius: 10px;
   border: none;
   cursor: pointer;
   transition: all 0.2s ease;
   text-decoration: none;
+  min-height: 44px;
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  background: var(--primary);
   color: white;
-  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35);
+  box-shadow: 0 4px 14px rgba(232, 134, 26, 0.3);
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.45);
+  box-shadow: 0 6px 20px rgba(232, 134, 26, 0.4);
+  background: var(--primary-dark);
 }
 
 .btn-secondary {
-  background: var(--card);
-  color: var(--foreground);
-  border: 1px solid var(--border);
+  background: white;
+  color: var(--primary);
+  border: 2px solid var(--primary);
 }
 
 .btn-secondary:hover {
-  border-color: var(--primary);
-  color: var(--primary);
+  background: var(--primary-light);
 }
 
 .btn-outline {
@@ -165,52 +163,61 @@ body {
   color: white;
 }
 
-/* Cards */
+/* ============================
+   CARDS
+   ============================ */
 .card {
   background: var(--card);
-  border-radius: 1rem;
-  border: 1px solid var(--border);
+  border-radius: 12px;
+  border: 1.5px solid var(--border);
   padding: 1.5rem;
   transition: all 0.3s ease;
 }
 
 .card:hover {
   border-color: var(--primary);
-  box-shadow: 0 10px 40px rgba(124, 58, 237, 0.1);
+  box-shadow: 0 8px 30px rgba(232, 134, 26, 0.08);
 }
 
-/* Inputs */
+/* ============================
+   INPUTS
+   ============================ */
 .input {
   width: 100%;
   padding: 0.75rem 1rem;
-  border: 1px solid var(--border);
-  border-radius: 0.5rem;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
   background: var(--background);
   color: var(--foreground);
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   transition: all 0.2s ease;
+  min-height: 44px;
 }
 
 .input:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+  box-shadow: 0 0 0 3px rgba(232, 134, 26, 0.12);
 }
 
 .input::placeholder {
   color: var(--muted);
 }
 
-/* Labels */
+/* ============================
+   LABELS
+   ============================ */
 .label {
   display: block;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 500;
-  color: var(--foreground);
+  color: var(--text-secondary);
   margin-bottom: 0.5rem;
 }
 
-/* Rating Stars */
+/* ============================
+   RATING STARS
+   ============================ */
 .star {
   color: var(--muted);
   cursor: pointer;
@@ -218,30 +225,36 @@ body {
 }
 
 .star.filled {
-  color: #fbbf24;
+  color: var(--primary);
 }
 
 .star:hover {
-  color: #fbbf24;
+  color: var(--primary);
 }
 
-/* Gradient Text */
+/* ============================
+   GRADIENT TEXT (Saffron)
+   ============================ */
 .gradient-text {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, #D97706 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-/* Glass Effect */
+/* ============================
+   GLASS EFFECT
+   ============================ */
 .glass {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1.5px solid var(--border);
 }
 
-/* Animations */
+/* ============================
+   ANIMATIONS
+   ============================ */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -290,6 +303,16 @@ body {
   }
 }
 
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .animate-fadeIn {
   animation: fadeIn 0.6s ease forwards;
 }
@@ -306,9 +329,11 @@ body {
   animation: float 3s ease-in-out infinite;
 }
 
-/* Skeleton Loading */
+/* ============================
+   SKELETON LOADING
+   ============================ */
 .skeleton {
-  background: linear-gradient(90deg, var(--card) 25%, var(--border) 50%, var(--card) 75%);
+  background: linear-gradient(90deg, var(--primary-light) 25%, var(--border) 50%, var(--primary-light) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
@@ -323,53 +348,68 @@ body {
   }
 }
 
-/* Badge */
+/* ============================
+   BADGES
+   ============================ */
 .badge {
   display: inline-flex;
   align-items: center;
   padding: 0.25rem 0.75rem;
   font-size: 0.75rem;
-  font-weight: 600;
-  border-radius: 9999px;
+  font-weight: 700;
+  border-radius: 4px;
 }
 
 .badge-primary {
-  background: rgba(124, 58, 237, 0.1);
+  background: var(--primary-light);
   color: var(--primary);
 }
 
 .badge-success {
-  background: rgba(34, 197, 94, 0.1);
+  background: var(--success-light);
   color: var(--success);
 }
 
 .badge-warning {
-  background: rgba(245, 158, 11, 0.1);
+  background: var(--warning-bg);
   color: var(--warning);
 }
 
 .badge-error {
-  background: rgba(239, 68, 68, 0.1);
+  background: rgba(192, 57, 43, 0.1);
   color: var(--error);
 }
 
-/* Toast */
+/* VEG badge */
+.badge-veg {
+  background: var(--success-light);
+  color: var(--success);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  border-radius: 4px;
+}
+
+/* ============================
+   TOAST
+   ============================ */
 .toast {
   position: fixed;
   bottom: 1rem;
   right: 1rem;
   padding: 1rem 1.5rem;
-  border-radius: 0.75rem;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
   z-index: 9999;
   animation: slideIn 0.3s ease;
 }
 
-/* Modal Overlay */
+/* ============================
+   MODAL
+   ============================ */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(26, 18, 8, 0.4);
   backdrop-filter: blur(4px);
   z-index: 9998;
   display: flex;
@@ -378,8 +418,9 @@ body {
 }
 
 .modal {
-  background: var(--background);
-  border-radius: 1rem;
+  background: var(--card);
+  border-radius: 12px;
+  border: 1.5px solid var(--border);
   padding: 2rem;
   max-width: 500px;
   width: 90%;
@@ -388,26 +429,30 @@ body {
   animation: fadeIn 0.3s ease;
 }
 
-/* Toggle buttons */
+/* ============================
+   TOGGLE BUTTONS
+   ============================ */
 .toggle-group {
   display: flex;
   gap: 0.5rem;
 }
 
 .toggle-btn {
-  padding: 0.5rem 1.25rem;
-  border-radius: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  border-radius: 8px;
   border: 1.5px solid var(--border);
   background: var(--card);
   color: var(--muted);
   cursor: pointer;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   transition: all 0.2s ease;
+  min-height: 44px;
 }
 
 .toggle-btn:hover {
   border-color: var(--primary);
+  color: var(--primary);
 }
 
 .toggle-btn.active {
@@ -416,39 +461,44 @@ body {
   border-color: var(--primary);
 }
 
-/* File upload area */
+/* ============================
+   FILE UPLOAD AREA
+   ============================ */
 .file-upload-area {
   display: flex;
   align-items: center;
   padding: 0.75rem;
-  border-radius: 0.5rem;
+  border-radius: 8px;
   border: 1.5px dashed var(--border);
   background: var(--card);
 }
 
-/* Outline button */
-.btn-outline {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.625rem 1.25rem;
-  border: 1.5px solid var(--primary);
-  border-radius: 0.5rem;
-  background: transparent;
+/* ============================
+   SECTION LABELS (uppercase)
+   ============================ */
+.section-label {
   color: var(--primary);
-  font-weight: 600;
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  font-size: 0.6875rem;
+  letter-spacing: 1px;
+  font-weight: 700;
+  text-transform: uppercase;
 }
 
-.btn-outline:hover {
-  background: var(--primary);
-  color: white;
+/* ============================
+   PRICE TEXT (always green)
+   ============================ */
+.price-text {
+  color: var(--success);
+  font-weight: 700;
 }
 
-/* Fade-in animation */
-.animate-fadeIn {
-  animation: fadeIn 0.3s ease;
+/* ============================
+   TABLE STYLES
+   ============================ */
+.table-header {
+  background: var(--background);
+}
+
+.table-row {
+  border-bottom: 1px solid var(--border);
 }

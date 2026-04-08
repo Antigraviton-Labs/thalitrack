@@ -6,6 +6,9 @@ import { verifyToken, getTokenFromHeader } from '@/lib/utils/auth';
 const publicRoutes = [
     '/api/auth/register',
     '/api/auth/login',
+    '/api/auth/forgot-password',
+    '/api/auth/verify-otp',
+    '/api/auth/reset-password',
     '/api/webhooks',
 ];
 
@@ -16,12 +19,32 @@ const roleRoutes: Record<string, string[]> = {
     '/api/student': ['student', 'admin'],
 };
 
+// Admin frontend origin for CORS
+const ADMIN_ORIGIN = process.env.ADMIN_FRONTEND_URL || 'http://localhost:3001';
+
+function addCorsHeaders(response: NextResponse, origin: string): NextResponse {
+    response.headers.set('Access-Control-Allow-Origin', origin);
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    response.headers.set('Access-Control-Allow-Credentials', 'true');
+    return response;
+}
+
 export async function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
     // Skip for non-API routes
     if (!pathname.startsWith('/api/')) {
         return NextResponse.next();
+    }
+
+    const origin = request.headers.get('origin') || '';
+    const isAdminOrigin = origin === ADMIN_ORIGIN;
+
+    // Handle CORS preflight for admin frontend
+    if (request.method === 'OPTIONS' && isAdminOrigin) {
+        const preflightResponse = new NextResponse(null, { status: 204 });
+        return addCorsHeaders(preflightResponse, ADMIN_ORIGIN);
     }
 
     // Check if route is public
@@ -44,7 +67,8 @@ export async function proxy(request: NextRequest) {
         );
 
     if (isPublicRoute) {
-        return NextResponse.next();
+        const response = NextResponse.next();
+        return isAdminOrigin ? addCorsHeaders(response, ADMIN_ORIGIN) : response;
     }
 
     // Get token from Authorization header
@@ -52,30 +76,33 @@ export async function proxy(request: NextRequest) {
     const token = getTokenFromHeader(authHeader || '');
 
     if (!token) {
-        return NextResponse.json(
+        const response = NextResponse.json(
             { success: false, error: 'Authentication required' },
             { status: 401 }
         );
+        return isAdminOrigin ? addCorsHeaders(response, ADMIN_ORIGIN) : response;
     }
 
     // Verify token
     const decoded = verifyToken(token);
 
     if (!decoded) {
-        return NextResponse.json(
+        const response = NextResponse.json(
             { success: false, error: 'Invalid or expired token' },
             { status: 401 }
         );
+        return isAdminOrigin ? addCorsHeaders(response, ADMIN_ORIGIN) : response;
     }
 
     // Check role-based access
     for (const [routePrefix, allowedRoles] of Object.entries(roleRoutes)) {
         if (pathname.startsWith(routePrefix)) {
             if (!allowedRoles.includes(decoded.role)) {
-                return NextResponse.json(
+                const response = NextResponse.json(
                     { success: false, error: 'Insufficient permissions' },
                     { status: 403 }
                 );
+                return isAdminOrigin ? addCorsHeaders(response, ADMIN_ORIGIN) : response;
             }
             break;
         }
@@ -87,13 +114,16 @@ export async function proxy(request: NextRequest) {
     requestHeaders.set('x-user-email', decoded.email);
     requestHeaders.set('x-user-role', decoded.role);
 
-    return NextResponse.next({
+    const response = NextResponse.next({
         request: {
             headers: requestHeaders,
         },
     });
+
+    return isAdminOrigin ? addCorsHeaders(response, ADMIN_ORIGIN) : response;
 }
 
 export const config = {
     matcher: ['/api/:path*'],
 };
+

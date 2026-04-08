@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { Navbar, Footer } from '@/components/layouts';
 
-export default function RegisterPage() {
+function RegisterForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { register } = useAuth();
@@ -96,8 +96,8 @@ export default function RegisterPage() {
                                 type="button"
                                 onClick={() => setFormData((prev) => ({ ...prev, role: 'student' }))}
                                 className={`flex-1 py-3 text-sm font-medium transition-colors ${formData.role === 'student'
-                                        ? 'bg-primary text-white'
-                                        : 'bg-card text-muted hover:text-foreground'
+                                    ? 'bg-primary text-white'
+                                    : 'bg-card text-muted hover:text-foreground'
                                     }`}
                             >
                                 🎓 I'm a Student
@@ -106,8 +106,8 @@ export default function RegisterPage() {
                                 type="button"
                                 onClick={() => setFormData((prev) => ({ ...prev, role: 'messOwner' }))}
                                 className={`flex-1 py-3 text-sm font-medium transition-colors ${formData.role === 'messOwner'
-                                        ? 'bg-primary text-white'
-                                        : 'bg-card text-muted hover:text-foreground'
+                                    ? 'bg-primary text-white'
+                                    : 'bg-card text-muted hover:text-foreground'
                                     }`}
                             >
                                 🍳 I'm a Mess Owner
@@ -221,5 +221,17 @@ export default function RegisterPage() {
             </main>
             <Footer />
         </>
+    );
+}
+
+export default function RegisterPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center">
+                <span className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+            </div>
+        }>
+            <RegisterForm />
+        </Suspense>
     );
 }

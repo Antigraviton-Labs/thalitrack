@@ -7,7 +7,7 @@ interface AuthContextType {
     user: AuthUser | null;
     token: string | null;
     isLoading: boolean;
-    login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+    login: (email: string, password: string, rememberMe?: boolean) => Promise<{ success: boolean; error?: string }>;
     register: (data: RegisterData) => Promise<{ success: boolean; error?: string }>;
     logout: () => void;
     refreshUser: () => Promise<void>;
@@ -29,7 +29,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [isLoading, setIsLoading] = useState(true);
 
     const refreshUser = useCallback(async () => {
-        const storedToken = localStorage.getItem('thalitrack_token');
+        const storedToken = localStorage.getItem('thalitrack_token') || sessionStorage.getItem('thalitrack_token');
         if (!storedToken) {
             setIsLoading(false);
             return;
@@ -53,11 +53,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 setToken(storedToken);
             } else {
                 localStorage.removeItem('thalitrack_token');
+                sessionStorage.removeItem('thalitrack_token');
                 setUser(null);
                 setToken(null);
             }
         } catch {
             localStorage.removeItem('thalitrack_token');
+            sessionStorage.removeItem('thalitrack_token');
             setUser(null);
             setToken(null);
         } finally {
@@ -69,7 +71,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         refreshUser();
     }, [refreshUser]);
 
-    const login = async (email: string, password: string) => {
+    const login = async (email: string, password: string, rememberMe: boolean = false) => {
         try {
             const response = await fetch('/api/auth/login', {
                 method: 'POST',
@@ -80,7 +82,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const data = await response.json();
 
             if (data.success) {
-                localStorage.setItem('thalitrack_token', data.data.token);
+                if (rememberMe) {
+                    localStorage.setItem('thalitrack_token', data.data.token);
+                } else {
+                    sessionStorage.setItem('thalitrack_token', data.data.token);
+                }
                 setToken(data.data.token);
                 setUser({
                     userId: data.data.user.id,
@@ -127,6 +133,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const logout = () => {
         localStorage.removeItem('thalitrack_token');
+        sessionStorage.removeItem('thalitrack_token');
         setUser(null);
         setToken(null);
     };

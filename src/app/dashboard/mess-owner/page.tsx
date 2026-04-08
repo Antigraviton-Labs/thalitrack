@@ -218,7 +218,7 @@ export default function MessOwnerDashboard() {
                     <div className="flex items-center justify-between h-16">
                         <Link href="/" className="flex items-center gap-2">
                             <span className="text-2xl">🍽️</span>
-                            <span className="text-xl font-bold gradient-text">ThaliTrack</span>
+                            <span className="text-xl font-bold"><span style={{ color: '#1A1208' }}>Thali</span><span style={{ color: '#E8861A' }}>Track</span></span>
                         </Link>
                         <div className="flex items-center gap-4">
                             <span className="text-sm text-muted hidden sm:block">
@@ -310,13 +310,13 @@ export default function MessOwnerDashboard() {
                                 <div className="text-sm text-muted">Total Profile Views</div>
                             </div>
                             <div className="card">
-                                <div className="text-3xl font-bold text-yellow-500">
+                                <div className="text-3xl font-bold" style={{ color: '#E8861A' }}>
                                     {data.mess.averageRating.toFixed(1)} ⭐
                                 </div>
                                 <div className="text-sm text-muted">Mess Rating ({data.mess.totalRatings})</div>
                             </div>
                             <div className="card">
-                                <div className="text-3xl font-bold text-orange-500">
+                                <div className="text-3xl font-bold" style={{ color: '#E8861A' }}>
                                     {data.mess.thaliRating > 0 ? data.mess.thaliRating.toFixed(1) : '—'} {data.mess.thaliRating > 0 ? '⭐' : ''}
                                 </div>
                                 <div className="text-sm text-muted">
@@ -392,26 +392,26 @@ export default function MessOwnerDashboard() {
                                     <AreaChart data={data.daily} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                                         <defs>
                                             <linearGradient id="colorMessViews" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="var(--color-primary, #7c3aed)" stopOpacity={0.3} />
-                                                <stop offset="95%" stopColor="var(--color-primary, #7c3aed)" stopOpacity={0} />
+                                                <stop offset="5%" stopColor="var(--color-primary, #E8861A)" stopOpacity={0.3} />
+                                                <stop offset="95%" stopColor="var(--color-primary, #E8861A)" stopOpacity={0} />
                                             </linearGradient>
                                         </defs>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border, #333)" />
+                                        <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border, #E8DCC8)" />
                                         <XAxis
                                             dataKey="date"
                                             tickFormatter={(date: string) =>
                                                 new Date(date + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
                                             }
                                             tick={{ fontSize: 12 }}
-                                            stroke="var(--color-muted, #888)"
+                                            stroke="var(--color-muted, #9C8866)"
                                         />
-                                        <YAxis allowDecimals={false} tick={{ fontSize: 12 }} stroke="var(--color-muted, #888)" />
+                                        <YAxis allowDecimals={false} tick={{ fontSize: 12 }} stroke="var(--color-muted, #9C8866)" />
                                         <Tooltip
                                             contentStyle={{
-                                                backgroundColor: 'var(--color-card, #1a1a2e)',
-                                                border: '1px solid var(--color-border, #333)',
+                                                backgroundColor: 'var(--color-card, #FFFFFF)',
+                                                border: '1.5px solid var(--color-border, #E8DCC8)',
                                                 borderRadius: '8px',
-                                                color: 'var(--color-foreground, #fff)',
+                                                color: 'var(--color-foreground, #1A1208)',
                                             }}
                                             labelFormatter={(date: any) =>
                                                 new Date(date + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })
@@ -422,7 +422,7 @@ export default function MessOwnerDashboard() {
                                             type="monotone"
                                             dataKey="messViews"
                                             name="Profile Views"
-                                            stroke="var(--color-primary, #7c3aed)"
+                                            stroke="var(--color-primary, #E8861A)"
                                             strokeWidth={2}
                                             fillOpacity={1}
                                             fill="url(#colorMessViews)"
@@ -472,6 +472,6 @@ export default function MessOwnerDashboard() {
                     </>
                 )}
             </div>
-        </div>
+        </div >
     );
 }

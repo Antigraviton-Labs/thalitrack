@@ -1,4 +1,4 @@
-export { generateToken, verifyToken, decodeToken, getTokenFromHeader, cookieOptions } from './auth';
+export { generateToken, verifyToken, decodeToken, getTokenFromHeader, cookieOptions, requireAdmin } from './auth';
 export {
     successResponse,
     errorResponse,

@@ -1,11 +1,15 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { User, Mess, Subscription } from '@/lib/models';
-import { successResponse, errorResponse, paginatedResponse } from '@/lib/utils';
+import { successResponse, errorResponse, paginatedResponse, requireAdmin } from '@/lib/utils';
 
 // GET /api/admin/users - List all users
 export async function GET(request: NextRequest) {
     try {
+        // Verify admin access directly from JWT
+        const adminCheck = requireAdmin(request);
+        if (adminCheck instanceof NextResponse) return adminCheck;
+
         await connectDB();
 
         const { searchParams } = new URL(request.url);

@@ -1,7 +1,7 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { User } from '@/lib/models';
-import { successResponse, errorResponse } from '@/lib/utils';
+import { successResponse, errorResponse, requireAdmin } from '@/lib/utils';
 import { objectIdSchema, validateInput } from '@/lib/validations';
 
 interface RouteParams {
@@ -11,6 +11,10 @@ interface RouteParams {
 // GET /api/admin/users/[id] - Get user details
 export async function GET(request: NextRequest, { params }: RouteParams) {
     try {
+        // Verify admin access directly from JWT
+        const adminCheck = requireAdmin(request);
+        if (adminCheck instanceof NextResponse) return adminCheck;
+
         await connectDB();
 
         const { id } = await params;
@@ -35,6 +39,10 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 // PUT /api/admin/users/[id] - Update user (activate/deactivate)
 export async function PUT(request: NextRequest, { params }: RouteParams) {
     try {
+        // Verify admin access directly from JWT
+        const adminCheck = requireAdmin(request);
+        if (adminCheck instanceof NextResponse) return adminCheck;
+
         await connectDB();
 
         const { id } = await params;
@@ -73,6 +81,10 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 // DELETE /api/admin/users/[id] - Delete user
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
     try {
+        // Verify admin access directly from JWT
+        const adminCheck = requireAdmin(request);
+        if (adminCheck instanceof NextResponse) return adminCheck;
+
         await connectDB();
 
         const { id } = await params;

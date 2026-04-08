@@ -73,7 +73,7 @@ export default function MessDetailPage({ params }: PageProps) {
                         </button>
                         <Link href="/" className="flex items-center gap-2">
                             <span className="text-2xl">🍽️</span>
-                            <span className="text-xl font-bold gradient-text">ThaliTrack</span>
+                            <span className="text-xl font-bold"><span style={{ color: '#1A1208' }}>Thali</span><span style={{ color: '#E8861A' }}>Track</span></span>
                         </Link>
                     </div>
                     <div className="flex items-center gap-3">
@@ -350,7 +350,7 @@ export default function MessDetailPage({ params }: PageProps) {
                             {/* Rating & Price */}
                             <div className="flex flex-wrap gap-6">
                                 <div className="flex items-center gap-2">
-                                    <span className="text-yellow-500 text-2xl">⭐</span>
+                                    <span style={{ color: '#E8861A' }} className="text-2xl">⭐</span>
                                     <span className="text-2xl font-bold">{mess.averageRating.toFixed(1)}</span>
                                     <span className="text-muted">({mess.totalRatings} ratings)</span>
                                 </div>

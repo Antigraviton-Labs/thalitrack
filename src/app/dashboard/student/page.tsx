@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks';
+import { MessCard } from '@/components/ui';
 
 interface Mess {
     _id: string;
@@ -70,6 +71,8 @@ export default function StudentDashboard() {
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [sortBy, setSortBy] = useState<'nearest' | 'topRated' | 'lowestPrice'>('nearest');
+    const [userLat, setUserLat] = useState<number | null>(null);
+    const [userLng, setUserLng] = useState<number | null>(null);
     const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
     // Saved tab state
@@ -95,12 +98,17 @@ export default function StudentDashboard() {
     };
 
     // Fetch messes with optional search
-    const fetchMesses = useCallback(async (query?: string) => {
+    const fetchMesses = useCallback(async (query?: string, customSortBy?: string, lat?: number, lng?: number) => {
         setIsLoading(true);
         try {
-            let url = '/api/messes?sortBy=rating&limit=20';
+            const currentSort = customSortBy || sortBy;
+            const sortParam = currentSort === 'nearest' ? 'distance' : currentSort === 'topRated' ? 'rating' : currentSort === 'lowestPrice' ? 'price' : 'rating';
+            let url = `/api/messes?sortBy=${sortParam}&limit=20`;
             if (query) {
                 url += `&query=${encodeURIComponent(query)}`;
+            }
+            if (lat && lng) {
+                url += `&latitude=${lat}&longitude=${lng}`;
             }
 
             const response = await fetch(url);
@@ -114,7 +122,7 @@ export default function StudentDashboard() {
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    }, [sortBy]);
 
     // Fetch saved messes
     const fetchSavedMesses = useCallback(async () => {
@@ -177,7 +185,7 @@ export default function StudentDashboard() {
 
         debounceRef.current = setTimeout(() => {
             if (activeTab === 'discover') {
-                fetchMesses(searchQuery || undefined);
+                fetchMesses(searchQuery || undefined, sortBy, userLat || undefined, userLng || undefined);
             }
         }, 300);
 
@@ -198,17 +206,31 @@ export default function StudentDashboard() {
         if (!authLoading && user?.role !== 'student') {
             if (user?.role === 'messOwner') {
                 router.push('/dashboard/mess-owner');
-            } else if (user?.role === 'admin') {
-                router.push('/dashboard/admin');
+            } else {
+                router.push('/');
             }
             return;
         }
 
         if (!authLoading && token) {
-            fetchMesses();
             fetchSavedMesses();
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const { latitude, longitude } = position.coords;
+                    setUserLat(latitude);
+                    setUserLng(longitude);
+                    setSortBy('nearest');
+                    fetchMesses(undefined, 'nearest', latitude, longitude);
+                },
+                (error) => {
+                    setSortBy('topRated');
+                    fetchMesses(undefined, 'topRated');
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
         }
-    }, [authLoading, user, router, token, fetchMesses, fetchSavedMesses]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [authLoading, user, router, token, fetchSavedMesses]);
 
     // Fetch suggestions when tab changes
     useEffect(() => {
@@ -341,86 +363,6 @@ export default function StudentDashboard() {
         }
     };
 
-    // Mess card component
-    const MessCard = ({ mess, showSave = true }: { mess: Mess; showSave?: boolean }) => (
-        <div className="card hover:border-primary transition-all hover:scale-[1.02]">
-            <Link href={`/messes/${mess._id}`} className="block">
-                <div className="flex justify-between items-start mb-3">
-                    <div>
-                        <h3 className="font-semibold text-lg">{mess.name}</h3>
-                        <span className={`badge ${mess.messType === 'veg' ? 'badge-success' :
-                            mess.messType === 'nonVeg' ? 'badge-error' : 'badge-warning'}`}>
-                            {mess.messType === 'veg' ? '🥬 Veg' :
-                                mess.messType === 'nonVeg' ? '🍗 Non-Veg' : '🍽️ Both'}
-                        </span>
-                    </div>
-                    <div className="text-right">
-                        <div className="text-yellow-500 font-bold">
-                            ⭐ {mess.averageRating?.toFixed(1) || '0.0'}
-                        </div>
-                        <div className="text-xs text-muted">{mess.totalRatings || 0} reviews</div>
-                    </div>
-                </div>
-                <p className="text-sm text-muted mb-2 line-clamp-2">
-                    {mess.description || mess.address}
-                </p>
-
-                {/* Thali Preview */}
-                {mess.thalis && mess.thalis.length > 0 && (
-                    <div className="mb-3 p-3 bg-muted/20 rounded-lg">
-                        <div className="flex justify-between items-start">
-                            <div>
-                                <span className="text-xs font-semibold uppercase text-muted tracking-wider">Thali</span>
-                                <p className="font-medium text-foreground">{mess.thalis[0].thaliName}</p>
-                            </div>
-                            <div className="text-right">
-                                <span className="block font-bold text-lg text-primary">₹{mess.thalis[0].price}</span>
-                                {mess.thalis.length > 1 && (
-                                    <span className="text-[10px] px-1.5 py-0.5 bg-background rounded-full border border-border text-muted">
-                                        +{mess.thalis.length - 1} more
-                                    </span>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                <div className="flex justify-between items-center border-t border-dashed border-border pt-3 mt-2">
-                    <div className="flex flex-col">
-                        {mess.monthlyPlan === 'yes' ? (
-                            <>
-                                <span className="text-[10px] uppercase text-muted font-medium">Monthly Plan</span>
-                                <span className="font-bold">₹{mess.monthlyPrice}/month</span>
-                            </>
-                        ) : (
-                            <span className="text-xs text-muted italic">No Monthly Plan Available</span>
-                        )}
-                    </div>
-                    {mess.distance && (
-                        <div className="flex items-center gap-1 text-xs text-muted">
-                            <span>📍</span>
-                            <span>{mess.distance.toFixed(1)} km</span>
-                        </div>
-                    )}
-                </div>
-            </Link>
-            {showSave && (
-                <button
-                    onClick={(e) => {
-                        e.preventDefault();
-                        handleSaveMess(mess._id);
-                    }}
-                    className={`mt-3 w-full py-2 rounded-lg text-sm font-medium transition-all ${savedMessIds.has(mess._id)
-                        ? 'bg-primary/20 text-primary border border-primary'
-                        : 'bg-card border border-border hover:border-primary'
-                        }`}
-                >
-                    {savedMessIds.has(mess._id) ? '❤️ Saved' : '🤍 Save'}
-                </button>
-            )}
-        </div>
-    );
-
     // Suggestion card component
     const SuggestionCard = ({ suggestion }: { suggestion: Suggestion }) => {
         const isLiked = suggestion.likes.includes(user?.userId || '');
@@ -479,7 +421,7 @@ export default function StudentDashboard() {
                     <div className="flex items-center justify-between h-16">
                         <Link href="/" className="flex items-center gap-2">
                             <span className="text-2xl">🍽️</span>
-                            <span className="text-xl font-bold gradient-text">ThaliTrack</span>
+                            <span className="text-xl font-bold"><span style={{ color: '#1A1208' }}>Thali</span><span style={{ color: '#E8861A' }}>Track</span></span>
                         </Link>
                         <div className="flex items-center gap-4">
                             <span className="text-sm text-muted hidden sm:block">Hi, {user?.name}</span>
@@ -565,7 +507,7 @@ export default function StudentDashboard() {
                                         }
                                     })
                                     .map((mess) => (
-                                        <MessCard key={mess._id} mess={mess} />
+                                        <MessCard key={mess._id} mess={mess as any} isSaved={savedMessIds.has(mess._id)} onSaveToggle={handleSaveMess} />
                                     ))}
                             </div>
                         )}
@@ -591,7 +533,7 @@ export default function StudentDashboard() {
                         ) : (
                             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {savedMesses.map((mess) => (
-                                    <MessCard key={mess._id} mess={mess} />
+                                    <MessCard key={mess._id} mess={mess as any} isSaved={savedMessIds.has(mess._id)} onSaveToggle={handleSaveMess} />
                                 ))}
                             </div>
                         )}

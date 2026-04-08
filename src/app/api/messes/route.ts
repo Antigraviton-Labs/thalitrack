@@ -139,11 +139,18 @@ export async function GET(request: NextRequest) {
 
             // Apply filters
             if (query) {
-                const q = query.toLowerCase();
+                const trimmedQ = query.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                const regex = new RegExp(trimmedQ, 'i');
                 filteredMesses = filteredMesses.filter(m =>
-                    m.name.toLowerCase().includes(q) ||
-                    m.description.toLowerCase().includes(q) ||
-                    m.address.toLowerCase().includes(q)
+                    (m.name && m.name.match(regex)) ||
+                    (m.description && m.description.match(regex)) ||
+                    (m.address && m.address.match(regex)) ||
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    (m as any).thalis?.some((thali: any) =>
+                        (thali.thaliName && thali.thaliName.match(regex)) ||
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        thali.items?.some((item: any) => item.itemName && item.itemName.match(regex))
+                    )
                 );
             }
             if (minRating) {
@@ -215,15 +222,18 @@ export async function GET(request: NextRequest) {
 
         // Text search - also search menu items
         if (query) {
+            const trimmedQuery = query.trim();
             // First, find messes that have matching menu items
             const matchingMenus = await Menu.find({
-                items: { $regex: query, $options: 'i' }
+                items: { $regex: trimmedQuery, $options: 'i' }
             }).distinct('messId');
 
             queryFilter.$or = [
-                { name: { $regex: query, $options: 'i' } },
-                { description: { $regex: query, $options: 'i' } },
-                { address: { $regex: query, $options: 'i' } },
+                { name: { $regex: trimmedQuery, $options: 'i' } },
+                { description: { $regex: trimmedQuery, $options: 'i' } },
+                { address: { $regex: trimmedQuery, $options: 'i' } },
+                { "thalis.thaliName": { $regex: trimmedQuery, $options: 'i' } },
+                { "thalis.items.itemName": { $regex: trimmedQuery, $options: 'i' } },
                 { _id: { $in: matchingMenus } }, // Include messes with matching menu items
             ];
         }

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/hooks';
-import LocationPickerModal from '@/components/LocationPickerModal';
+import LocationPicker from '@/components/LocationPicker';
 
 interface MenuItem {
     dishName: string;
@@ -42,7 +42,7 @@ export default function CreateMessPage() {
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
-    const [showLocationPicker, setShowLocationPicker] = useState(false);
+
 
     // Food license upload state
     const [licenseFile, setLicenseFile] = useState<File | null>(null);
@@ -112,19 +112,7 @@ export default function CreateMessPage() {
         }
     };
 
-    // Handle location selection from map
-    const handleLocationSelect = (location: {
-        latitude: number;
-        longitude: number;
-        address: string;
-    }) => {
-        setFormData((prev) => ({
-            ...prev,
-            latitude: location.latitude.toString(),
-            longitude: location.longitude.toString(),
-            address: location.address,
-        }));
-    };
+
 
     // Menu items management
     const addMenuItem = () => {
@@ -269,7 +257,7 @@ export default function CreateMessPage() {
                     <div className="flex items-center justify-between h-16">
                         <Link href="/dashboard/mess-owner" className="flex items-center gap-2">
                             <span className="text-2xl">🍽️</span>
-                            <span className="text-xl font-bold gradient-text">ThaliTrack</span>
+                            <span className="text-xl font-bold"><span style={{ color: '#1A1208' }}>Thali</span><span style={{ color: '#E8861A' }}>Track</span></span>
                         </Link>
                         <Link href="/dashboard/mess-owner" className="btn btn-secondary text-sm">
                             ← Back to Dashboard
@@ -383,37 +371,17 @@ export default function CreateMessPage() {
                             required
                             style={{ minHeight: '80px' }}
                         />
-                        <button
-                            type="button"
-                            onClick={() => setShowLocationPicker(true)}
-                            className="btn btn-secondary"
-                            style={{
-                                marginTop: '0.5rem',
-                                width: '100%',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '0.5rem',
-                                padding: '0.75rem 1rem',
-                                background: 'linear-gradient(135deg, rgba(124,58,237,0.1), rgba(99,102,241,0.1))',
-                                border: '1px dashed var(--primary)',
-                                fontWeight: 600,
-                            }}
-                        >
-                            📍 Pick Location on Map
-                        </button>
-                        {formData.latitude && formData.longitude && (
-                            <div style={{
-                                display: 'flex',
-                                gap: '1rem',
-                                marginTop: '0.5rem',
-                                fontSize: '0.8rem',
-                                color: 'var(--muted)',
-                            }}>
-                                <span>✅ Lat: {parseFloat(formData.latitude).toFixed(6)}</span>
-                                <span>Lng: {parseFloat(formData.longitude).toFixed(6)}</span>
-                            </div>
-                        )}
+                        <LocationPicker
+                            onLocationChange={({ latitude, longitude }) =>
+                                setFormData((prev) => ({
+                                    ...prev,
+                                    latitude: latitude.toString(),
+                                    longitude: longitude.toString(),
+                                }))
+                            }
+                            initialLatitude={formData.latitude ? parseFloat(formData.latitude) : undefined}
+                            initialLongitude={formData.longitude ? parseFloat(formData.longitude) : undefined}
+                        />
                     </div>
 
                     {/* ── Contact ── */}
@@ -701,13 +669,7 @@ export default function CreateMessPage() {
                 </form>
             </div>
 
-            <LocationPickerModal
-                isOpen={showLocationPicker}
-                onClose={() => setShowLocationPicker(false)}
-                onLocationSelect={handleLocationSelect}
-                initialLat={formData.latitude ? parseFloat(formData.latitude) : undefined}
-                initialLng={formData.longitude ? parseFloat(formData.longitude) : undefined}
-            />
+
         </div>
     );
 }

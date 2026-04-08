@@ -45,7 +45,7 @@ export default function StarRating({
                             }`}
                         aria-label={`Rate ${star} stars`}
                     >
-                        <span className={isFilled ? 'text-yellow-500' : 'text-gray-300'}>
+                        <span style={{ color: isFilled ? '#E8861A' : '#E8DCC8' }}>
                             ★
                         </span>
                     </button>

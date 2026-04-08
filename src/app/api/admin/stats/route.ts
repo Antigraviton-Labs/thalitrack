@@ -1,11 +1,15 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { User, Mess, Subscription, Rating, Analytics } from '@/lib/models';
-import { successResponse, errorResponse, getStartOfDay } from '@/lib/utils';
+import { successResponse, errorResponse, getStartOfDay, requireAdmin } from '@/lib/utils';
 
 // GET /api/admin/stats - Get admin dashboard statistics
 export async function GET(request: NextRequest) {
     try {
+        // Verify admin access directly from JWT
+        const adminCheck = requireAdmin(request);
+        if (adminCheck instanceof NextResponse) return adminCheck;
+
         await connectDB();
 
         const today = getStartOfDay();

@@ -2,9 +2,11 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import { useAuth } from '@/hooks';
 
 export default function Navbar() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const { user } = useAuth();
 
     return (
         <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
@@ -13,7 +15,7 @@ export default function Navbar() {
                     {/* Logo */}
                     <Link href="/" className="flex items-center gap-2">
                         <span className="text-2xl">🍽️</span>
-                        <span className="text-xl font-bold gradient-text">ThaliTrack</span>
+                        <span className="text-xl font-bold"><span style={{ color: '#1A1208' }}>Thali</span><span style={{ color: '#E8861A' }}>Track</span></span>
                     </Link>
 
                     {/* Desktop Navigation */}
@@ -37,12 +39,23 @@ export default function Navbar() {
                             Pricing
                         </Link>
                         <div className="flex items-center gap-3 ml-4">
-                            <Link href="/login" className="btn btn-secondary">
-                                Log In
-                            </Link>
-                            <Link href="/register" className="btn btn-primary">
-                                Get Started
-                            </Link>
+                            {user ? (
+                                <Link
+                                    href={user.role === 'student' ? '/dashboard/student' : '/dashboard/mess-owner'}
+                                    className="btn btn-primary"
+                                >
+                                    Go to Dashboard
+                                </Link>
+                            ) : (
+                                <>
+                                    <Link href="/login" className="btn btn-secondary">
+                                        Log In
+                                    </Link>
+                                    <Link href="/register" className="btn btn-primary">
+                                        Get Started
+                                    </Link>
+                                </>
+                            )}
                         </div>
                     </div>
 
@@ -103,12 +116,24 @@ export default function Navbar() {
                                 Pricing
                             </Link>
                             <div className="flex flex-col gap-2 pt-4 border-t border-border">
-                                <Link href="/login" className="btn btn-secondary w-full">
-                                    Log In
-                                </Link>
-                                <Link href="/register" className="btn btn-primary w-full">
-                                    Get Started
-                                </Link>
+                                {user ? (
+                                    <Link
+                                        href={user.role === 'student' ? '/dashboard/student' : '/dashboard/mess-owner'}
+                                        className="btn btn-primary w-full text-center"
+                                        onClick={() => setIsMenuOpen(false)}
+                                    >
+                                        Go to Dashboard
+                                    </Link>
+                                ) : (
+                                    <>
+                                        <Link href="/login" className="btn btn-secondary w-full text-center" onClick={() => setIsMenuOpen(false)}>
+                                            Log In
+                                        </Link>
+                                        <Link href="/register" className="btn btn-primary w-full text-center" onClick={() => setIsMenuOpen(false)}>
+                                            Get Started
+                                        </Link>
+                                    </>
+                                )}
                             </div>
                         </div>
                     </div>

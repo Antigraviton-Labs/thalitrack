@@ -8,7 +8,7 @@ import { Navbar, Footer } from '@/components/layouts';
 
 export default function LoginPage() {
     const router = useRouter();
-    const { login } = useAuth();
+    const { login, user } = useAuth();
 
     const [formData, setFormData] = useState({
         email: '',
@@ -16,6 +16,7 @@ export default function LoginPage() {
     });
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [rememberMe, setRememberMe] = useState(false);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -34,13 +35,13 @@ export default function LoginPage() {
 
         setIsLoading(true);
 
-        const result = await login(formData.email, formData.password);
+        const result = await login(formData.email, formData.password, rememberMe);
 
         setIsLoading(false);
 
         if (result.success) {
-            // Get user role and redirect accordingly
-            const storedToken = localStorage.getItem('thalitrack_token');
+            // Get the token from whichever storage it was placed in
+            const storedToken = localStorage.getItem('thalitrack_token') || sessionStorage.getItem('thalitrack_token');
             if (storedToken) {
                 try {
                     const response = await fetch('/api/auth/me', {
@@ -51,8 +52,11 @@ export default function LoginPage() {
                     if (data.success) {
                         switch (data.data.user.role) {
                             case 'admin':
-                                router.push('/dashboard/admin');
-                                break;
+                                // Admin users must use the separate admin portal
+                                localStorage.removeItem('thalitrack_token');
+                                sessionStorage.removeItem('thalitrack_token');
+                                setError('Admin accounts must log in via the admin portal.');
+                                return;
                             case 'messOwner':
                                 router.push('/dashboard/mess-owner');
                                 break;
@@ -120,8 +124,13 @@ export default function LoginPage() {
                             </div>
 
                             <div className="flex items-center justify-between text-sm">
-                                <label className="flex items-center gap-2">
-                                    <input type="checkbox" className="rounded border-border" />
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input 
+                                        type="checkbox" 
+                                        className="rounded border-border cursor-pointer" 
+                                        checked={rememberMe}
+                                        onChange={(e) => setRememberMe(e.target.checked)}
+                                    />
                                     <span className="text-muted">Remember me</span>
                                 </label>
                                 <Link href="/forgot-password" className="text-primary hover:underline">

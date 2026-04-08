@@ -4,6 +4,11 @@ import { User } from '@/lib/models';
 import { generateToken, successResponse, errorResponse, checkRateLimit } from '@/lib/utils';
 import { loginSchema, validateInput } from '@/lib/validations';
 
+// Parse admin allowed emails from env (comma-separated)
+const ADMIN_ALLOWED_EMAILS = process.env.ADMIN_ALLOWED_EMAILS
+    ? process.env.ADMIN_ALLOWED_EMAILS.split(',').map((e) => e.trim().toLowerCase())
+    : [];
+
 export async function POST(request: NextRequest) {
     try {
         // Rate limiting
@@ -43,6 +48,20 @@ export async function POST(request: NextRequest) {
             return errorResponse('Invalid email or password', 401);
         }
 
+        // Admin-specific checks
+        if (user.role === 'admin') {
+            // Tighter rate limiting for admin login (5 attempts per minute)
+            const adminRateLimit = checkRateLimit(`admin-login:${ip}`, 5, 60000);
+            if (!adminRateLimit.allowed) {
+                return errorResponse('Too many admin login attempts. Please try again later.', 429);
+            }
+
+            // Admin email whitelist check (if configured)
+            if (ADMIN_ALLOWED_EMAILS.length > 0 && !ADMIN_ALLOWED_EMAILS.includes(email.toLowerCase())) {
+                return errorResponse('This email is not authorized for admin access.', 403);
+            }
+        }
+
         // Generate token
         const token = generateToken({
             userId: user._id.toString(),
@@ -68,3 +87,4 @@ export async function POST(request: NextRequest) {
         return errorResponse('Login failed', 500);
     }
 }
+

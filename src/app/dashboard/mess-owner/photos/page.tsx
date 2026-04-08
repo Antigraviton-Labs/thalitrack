@@ -151,7 +151,7 @@ export default function ManagePhotosPage() {
                     <div className="flex items-center justify-between h-16">
                         <Link href="/dashboard/mess-owner" className="flex items-center gap-2">
                             <span className="text-2xl">🍽️</span>
-                            <span className="text-xl font-bold gradient-text">ThaliTrack</span>
+                            <span className="text-xl font-bold"><span style={{ color: '#1A1208' }}>Thali</span><span style={{ color: '#E8861A' }}>Track</span></span>
                         </Link>
                         <Link href="/dashboard/mess-owner" className="btn btn-secondary text-sm">
                             ← Back

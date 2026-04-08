@@ -3,13 +3,15 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Navbar, Footer } from '@/components/layouts';
 import { MessCard } from '@/components/ui';
-import { useLocation } from '@/hooks';
+import { useLocation, useAuth } from '@/hooks';
 import { MessWithDistance } from '@/types';
 
 export default function DiscoverPage() {
-    const { latitude, longitude, isLoading: locationLoading, error: locationError, requestLocation } = useLocation();
+    const { latitude, longitude } = useLocation();
+    const { token, user } = useAuth();
 
     const [messes, setMesses] = useState<MessWithDistance[]>([]);
+    const [savedMessIds, setSavedMessIds] = useState<Set<string>>(new Set());
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
@@ -19,6 +21,21 @@ export default function DiscoverPage() {
         maxPrice: '',
         minRating: '',
     });
+
+    const fetchSavedMesses = useCallback(async () => {
+        if (!token) return;
+        try {
+            const response = await fetch('/api/users/saved', {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            const result = await response.json();
+            if (result.success) {
+                setSavedMessIds(new Set((result.data || []).map((m: any) => m._id)));
+            }
+        } catch (error) {
+            console.error('Failed to fetch saved messes:', error);
+        }
+    }, [token]);
 
     const fetchMesses = useCallback(async () => {
         setIsLoading(true);
@@ -57,9 +74,46 @@ export default function DiscoverPage() {
         fetchMesses();
     }, [fetchMesses]);
 
+    useEffect(() => {
+        if (token) {
+            fetchSavedMesses();
+        }
+    }, [token, fetchSavedMesses]);
+
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         fetchMesses();
+    };
+
+    const handleSaveToggle = async (messId: string) => {
+        if (!token) return;
+
+        const isSaved = savedMessIds.has(messId);
+        try {
+            if (isSaved) {
+                await fetch(`/api/users/saved?messId=${messId}`, {
+                    method: 'DELETE',
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                setSavedMessIds(prev => {
+                    const newSet = new Set(prev);
+                    newSet.delete(messId);
+                    return newSet;
+                });
+            } else {
+                await fetch('/api/users/saved', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({ messId }),
+                });
+                setSavedMessIds(prev => new Set(prev).add(messId));
+            }
+        } catch (error) {
+            console.error('Save error:', error);
+        }
     };
 
     return (
@@ -74,30 +128,6 @@ export default function DiscoverPage() {
                             Find the perfect thali near you
                         </p>
                     </div>
-
-                    {/* Location Status */}
-                    {locationLoading && (
-                        <div className="bg-primary/10 text-primary p-4 rounded-lg mb-6 flex items-center gap-3">
-                            <span className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-                            Detecting your location...
-                        </div>
-                    )}
-
-                    {locationError && (
-                        <div className="bg-warning/10 text-warning p-4 rounded-lg mb-6 flex items-center justify-between">
-                            <span>📍 {locationError}</span>
-                            <button onClick={requestLocation} className="btn btn-secondary text-sm">
-                                Try Again
-                            </button>
-                        </div>
-                    )}
-
-                    {latitude && longitude && (
-                        <div className="bg-success/10 text-success p-4 rounded-lg mb-6 flex items-center gap-2">
-                            <span>📍</span>
-                            <span>Location detected! Showing messes near you.</span>
-                        </div>
-                    )}
 
                     {/* Search & Filters */}
                     <div className="card mb-8">
@@ -120,7 +150,7 @@ export default function DiscoverPage() {
                                     onChange={(e) => setFilters((prev) => ({ ...prev, sortBy: e.target.value as typeof filters.sortBy }))}
                                     className="input w-auto"
                                 >
-                                    <option value="distance">Nearest First</option>
+                                    <option value="distance">Nearest</option>
                                     <option value="rating">Top Rated</option>
                                     <option value="price">Lowest Price</option>
                                 </select>
@@ -161,8 +191,7 @@ export default function DiscoverPage() {
                         <div className="text-center py-20">
                             <span className="text-6xl mb-4 block">😕</span>
                             <h2 className="text-xl font-semibold mb-2">Something went wrong</h2>
-                            <p className="text-muted mb-4">{error}</p>
-                            <button onClick={fetchMesses} className="btn btn-primary">
+                            <button onClick={fetchMesses} className="btn btn-primary mt-4">
                                 Try Again
                             </button>
                         </div>
@@ -179,7 +208,12 @@ export default function DiscoverPage() {
                             <p className="text-muted mb-4">{messes.length} messes found</p>
                             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {messes.map((mess) => (
-                                    <MessCard key={mess._id} mess={mess} />
+                                    <MessCard
+                                        key={mess._id}
+                                        mess={mess}
+                                        isSaved={savedMessIds.has(mess._id)}
+                                        onSaveToggle={handleSaveToggle}
+                                    />
                                 ))}
                             </div>
                         </>
