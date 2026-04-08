@@ -21,6 +21,9 @@ const nextConfig = {
     // These are TS strict mode false positives and don't affect runtime
     ignoreBuildErrors: true,
   },
+  experimental: {
+    instrumentationHook: true,
+  },
 };
 
 export default nextConfig;

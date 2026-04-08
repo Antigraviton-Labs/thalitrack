@@ -157,7 +157,8 @@ export async function GET(request: NextRequest) {
                 filteredMesses = filteredMesses.filter(m => m.averageRating >= minRating);
             }
             if (maxPrice) {
-                filteredMesses = filteredMesses.filter(m => m.monthlyPrice <= maxPrice);
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                filteredMesses = filteredMesses.filter((m: any) => m.thalis?.[0]?.price <= maxPrice);
             }
             if (messType) {
                 filteredMesses = filteredMesses.filter(m => m.messType === messType || m.messType === 'both');
@@ -182,7 +183,8 @@ export async function GET(request: NextRequest) {
             if (sortBy === 'rating') {
                 filteredMesses.sort((a, b) => b.averageRating - a.averageRating);
             } else if (sortBy === 'price') {
-                filteredMesses.sort((a, b) => a.monthlyPrice - b.monthlyPrice);
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                filteredMesses.sort((a: any, b: any) => (a.thalis?.[0]?.price || Infinity) - (b.thalis?.[0]?.price || Infinity));
             }
 
             // Pagination
@@ -214,7 +216,9 @@ export async function GET(request: NextRequest) {
                 sort = { averageRating: -1 };
                 break;
             case 'price':
-                sort = { monthlyPrice: 1 };
+                sort = { "thalis.0.price": 1 };
+                // Ensure we don't return messes with missing prices floating to the top
+                queryFilter["thalis.0.price"] = { $exists: true, $type: "number" };
                 break;
             default:
                 sort = { createdAt: -1 };
@@ -245,7 +249,7 @@ export async function GET(request: NextRequest) {
 
         // Price filter
         if (maxPrice) {
-            queryFilter.monthlyPrice = { $lte: maxPrice };
+            queryFilter["thalis.0.price"] = { $lte: maxPrice };
         }
 
         // Mess type filter
@@ -259,24 +263,49 @@ export async function GET(request: NextRequest) {
         // Try geo query first if coordinates provided
         if (latitude && longitude) {
             try {
-                const geoQueryFilter = {
+                // For count, we use $geoWithin since $near is not allowed in countDocuments
+                const countGeoFilter = {
                     ...queryFilter,
                     location: {
-                        $near: {
-                            $geometry: {
-                                type: 'Point',
-                                coordinates: [longitude, latitude],
-                            },
-                            $maxDistance: (params.maxDistance || 50) * 1000, // Convert km to meters
+                        $geoWithin: {
+                            // Earth radius in meters is approx 6378100, but $centerSphere expects radians.
+                            // Convert maxDistance (km) to radians.
+                            $centerSphere: [[longitude, latitude], (params.maxDistance || 50) / 6378.1],
                         },
                     },
                 };
+                
+                total = await Mess.countDocuments(countGeoFilter);
 
-                total = await Mess.countDocuments(geoQueryFilter);
-                messes = await Mess.find(geoQueryFilter)
-                    .skip((page - 1) * limit)
-                    .limit(limit)
-                    .lean();
+                // If user explicitly requests to sort by price or rating, we cannot use $near
+                // because $near forces sorting by distance. Instead, we use $geoWithin to filter by radius
+                // and then apply the requested sort order.
+                if (sortBy === 'price' || sortBy === 'rating') {
+                    messes = await Mess.find(countGeoFilter) // countGeoFilter already uses $geoWithin
+                        .sort(sort)
+                        .skip((page - 1) * limit)
+                        .limit(limit)
+                        .lean();
+                } else {
+                    // Default behavior: sort by distance using $near
+                    const geoQueryFilter = {
+                        ...queryFilter,
+                        location: {
+                            $near: {
+                                $geometry: {
+                                    type: 'Point',
+                                    coordinates: [longitude, latitude],
+                                },
+                                $maxDistance: (params.maxDistance || 50) * 1000, // Convert km to meters
+                            },
+                        },
+                    };
+
+                    messes = await Mess.find(geoQueryFilter)
+                        .skip((page - 1) * limit)
+                        .limit(limit)
+                        .lean();
+                }
             } catch (geoError) {
                 console.warn('Geo query failed, falling back to regular query:', geoError);
                 // Fallback to non-geo query
@@ -319,6 +348,8 @@ export async function GET(request: NextRequest) {
                 return {
                     ...mess,
                     distance,
+                    // Extract Regular Thali's updatedAt (index 0 = Regular Thali)
+                    regularThaliUpdatedAt: mess.thalis?.[0]?.updatedAt || mess.thalis?.[0]?.createdAt || null,
                     todayMenu: todayMenu ? {
                         items: todayMenu.items,
                         averageRating: todayMenu.averageRating,

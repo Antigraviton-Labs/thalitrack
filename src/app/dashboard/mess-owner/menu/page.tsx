@@ -41,6 +41,7 @@ export default function ManageMenuPage() {
     const [thalis, setThalis] = useState<Thali[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
+    const [savingIndex, setSavingIndex] = useState<number | null>(null); // Track which single thali is saving
     const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
     const fetchMess = useCallback(async () => {
@@ -58,6 +59,10 @@ export default function ManageMenuPage() {
                 if (messData.success) {
                     // Ensure every item has a stable id for React keying
                     const loadedThalis = normalizeThalis(messData.data?.thalis);
+                    // Enforce first thali name to "Regular Thali"
+                    if (loadedThalis.length > 0) {
+                        loadedThalis[0].thaliName = 'Regular Thali';
+                    }
                     setThalis(loadedThalis);
                 }
             }
@@ -84,11 +89,12 @@ export default function ManageMenuPage() {
 
     // Add new thali
     const addThali = () => {
+        const isFirstThali = thalis.length === 0;
         setThalis(prev => [
             ...prev,
             {
                 thaliId: crypto.randomUUID(),
-                thaliName: '',
+                thaliName: isFirstThali ? 'Regular Thali' : '',
                 description: '',
                 price: 0,
                 items: [{ id: crypto.randomUUID(), itemName: '' }],
@@ -96,10 +102,48 @@ export default function ManageMenuPage() {
         ]);
     };
 
-    // Remove thali
-    const removeThali = (index: number) => {
+    // Remove thali and save deletion immediately
+    const removeThali = async (index: number) => {
         if (!confirm('Remove this thali? This will also delete all its ratings.')) return;
-        setThalis(prev => prev.filter((_, i) => i !== index));
+        
+        const newThalis = thalis.filter((_, i) => i !== index);
+        setThalis(newThalis); // Optimistic UI update
+
+        if (!token || !messId) return;
+        setIsSaving(true);
+        setSaveMessage(null);
+
+        // Enforce first thali name for the new array payload
+        const thalisToSave = newThalis.map((t, i) =>
+            i === 0 ? { ...t, thaliName: 'Regular Thali' } : t
+        );
+
+        try {
+            const response = await fetch(`/api/messes/${messId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ thalis: thalisToSave }),
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                setSaveMessage({ type: 'success', text: 'Thali removed successfully!' });
+                if (result.data?.thalis) {
+                    const updated = normalizeThalis(result.data.thalis);
+                    if (updated.length > 0) updated[0].thaliName = 'Regular Thali';
+                    setThalis(updated);
+                }
+            } else {
+                setSaveMessage({ type: 'error', text: result.error || 'Failed to remove thali from server.' });
+            }
+        } catch {
+            setSaveMessage({ type: 'error', text: 'Network error while removing.' });
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     // Update thali field
@@ -131,29 +175,32 @@ export default function ManageMenuPage() {
         ));
     };
 
-    // Save thalis (full replace)
-    const handleSave = async () => {
+    // Validate a single thali
+    const validateThali = (thali: Thali): string | null => {
+        if (!thali.thaliName.trim()) return 'Thali must have a name.';
+        if (thali.price < 0) return 'Thali price cannot be negative.';
+        for (const item of thali.items) {
+            if (!item.itemName.trim()) return `Thali "${thali.thaliName}" has items without names.`;
+        }
+        return null;
+    };
+
+    // Save a single thali at a specific index
+    const handleSaveSingle = async (index: number) => {
         if (!token || !messId) return;
 
-        // Validate
-        for (const thali of thalis) {
-            if (!thali.thaliName.trim()) {
-                setSaveMessage({ type: 'error', text: 'All thalis must have a name.' });
-                return;
-            }
-            if (thali.price < 0) {
-                setSaveMessage({ type: 'error', text: 'Thali price cannot be negative.' });
-                return;
-            }
-            for (const item of thali.items) {
-                if (!item.itemName.trim()) {
-                    setSaveMessage({ type: 'error', text: `Thali "${thali.thaliName}" has items without names.` });
-                    return;
-                }
-            }
+        const thali = thalis[index];
+
+        // Enforce first thali name
+        const thaliToSave = index === 0 ? { ...thali, thaliName: 'Regular Thali' } : thali;
+
+        const validationError = validateThali(thaliToSave);
+        if (validationError) {
+            setSaveMessage({ type: 'error', text: validationError });
+            return;
         }
 
-        setIsSaving(true);
+        setSavingIndex(index);
         setSaveMessage(null);
 
         try {
@@ -163,15 +210,69 @@ export default function ManageMenuPage() {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`,
                 },
-                body: JSON.stringify({ thalis }),
+                body: JSON.stringify({
+                    thalis: [thaliToSave], // Send just this one thali
+                    singleThaliIndex: index, // Tell backend which index to update
+                }),
             });
 
             const result = await response.json();
             if (result.success) {
-                setSaveMessage({ type: 'success', text: 'Menu saved successfully!' });
-                // Update thalis with server response (preserves ratings)
+                setSaveMessage({ type: 'success', text: `"${thaliToSave.thaliName}" saved successfully!` });
+                // Update thalis with server response
                 if (result.data?.thalis) {
-                    setThalis(normalizeThalis(result.data.thalis));
+                    const updated = normalizeThalis(result.data.thalis);
+                    if (updated.length > 0) updated[0].thaliName = 'Regular Thali';
+                    setThalis(updated);
+                }
+            } else {
+                setSaveMessage({ type: 'error', text: result.error || 'Failed to save thali.' });
+            }
+        } catch {
+            setSaveMessage({ type: 'error', text: 'Network error. Please try again.' });
+        } finally {
+            setSavingIndex(null);
+        }
+    };
+
+    // Save ALL thalis (full replace)
+    const handleSaveAll = async () => {
+        if (!token || !messId) return;
+
+        // Validate all
+        for (const thali of thalis) {
+            const err = validateThali(thali);
+            if (err) {
+                setSaveMessage({ type: 'error', text: err });
+                return;
+            }
+        }
+
+        setIsSaving(true);
+        setSaveMessage(null);
+
+        // Enforce first thali name
+        const thalisToSave = thalis.map((t, i) =>
+            i === 0 ? { ...t, thaliName: 'Regular Thali' } : t
+        );
+
+        try {
+            const response = await fetch(`/api/messes/${messId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ thalis: thalisToSave }),
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                setSaveMessage({ type: 'success', text: 'All thalis saved successfully!' });
+                if (result.data?.thalis) {
+                    const updated = normalizeThalis(result.data.thalis);
+                    if (updated.length > 0) updated[0].thaliName = 'Regular Thali';
+                    setThalis(updated);
                 }
             } else {
                 setSaveMessage({ type: 'error', text: result.error || 'Failed to save menu.' });
@@ -205,11 +306,11 @@ export default function ManageMenuPage() {
                         </Link>
                         <h1 className="text-lg font-bold">Manage Menu</h1>
                         <button
-                            onClick={handleSave}
-                            disabled={isSaving}
+                            onClick={handleSaveAll}
+                            disabled={isSaving || savingIndex !== null}
                             className="btn btn-primary text-sm"
                         >
-                            {isSaving ? 'Saving...' : 'Save All'}
+                            {isSaving ? 'Saving...' : '💾 Save All'}
                         </button>
                     </div>
                 </div>
@@ -249,8 +350,10 @@ export default function ManageMenuPage() {
                                                 type="text"
                                                 className="input"
                                                 placeholder="e.g., Regular Thali"
-                                                value={thali.thaliName}
+                                                value={tIdx === 0 ? 'Regular Thali' : thali.thaliName}
                                                 onChange={e => updateThali(tIdx, 'thaliName', e.target.value)}
+                                                disabled={tIdx === 0}
+                                                style={tIdx === 0 ? { opacity: 0.7, cursor: 'not-allowed', fontWeight: 600 } : {}}
                                             />
                                         </div>
                                         <div>
@@ -324,6 +427,28 @@ export default function ManageMenuPage() {
                                             </div>
                                         ))}
                                     </div>
+                                </div>
+
+                                {/* Individual Save Button */}
+                                <div className="mt-4 pt-3 border-t border-border flex justify-end">
+                                    <button
+                                        onClick={() => handleSaveSingle(tIdx)}
+                                        disabled={isSaving || savingIndex !== null}
+                                        className="btn btn-secondary text-sm flex items-center gap-2"
+                                        style={{
+                                            minWidth: '140px',
+                                            justifyContent: 'center',
+                                        }}
+                                    >
+                                        {savingIndex === tIdx ? (
+                                            <>
+                                                <span className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin inline-block" />
+                                                Saving...
+                                            </>
+                                        ) : (
+                                            <>💾 Save {tIdx === 0 ? 'Regular Thali' : thali.thaliName || 'Thali'}</>
+                                        )}
+                                    </button>
                                 </div>
                             </div>
                         ))}

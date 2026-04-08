@@ -10,6 +10,15 @@ import { useAuth } from '@/hooks';
 import { IMess, IMenu } from '@/types';
 import { getRelativeTime } from '@/lib/utils/helpers';
 
+// Helper: format time string "HH:mm" or "HH:mm:ss" to "h:mm AM/PM"
+function formatTime(t: string | undefined): string {
+    if (!t) return '';
+    const [h, m] = t.split(':').map(Number);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const hour = h % 12 || 12;
+    return `${hour}:${String(m).padStart(2, '0')} ${ampm}`;
+}
+
 interface PageProps {
     params: Promise<{ id: string }>;
 }
@@ -57,6 +66,7 @@ export default function MessDetailPage({ params }: PageProps) {
     const [suggestionMessage, setSuggestionMessage] = useState('');
     const [activeTab, setActiveTab] = useState<'menu' | 'suggestions'>('menu');
     const [activePhoto, setActivePhoto] = useState(0);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     // Custom header component
     const PageHeader = () => (
@@ -76,10 +86,12 @@ export default function MessDetailPage({ params }: PageProps) {
                             <span className="text-xl font-bold"><span style={{ color: '#1A1208' }}>Thali</span><span style={{ color: '#E8861A' }}>Track</span></span>
                         </Link>
                     </div>
-                    <div className="flex items-center gap-3">
+                    
+                    {/* Desktop buttons */}
+                    <div className="hidden md:flex items-center gap-3">
                         {user ? (
                             <>
-                                <span className="text-sm text-muted hidden sm:block">Hi, {user.name}</span>
+                                <span className="text-sm text-muted">Hi, {user.name}</span>
                                 <button
                                     onClick={() => {
                                         logout();
@@ -101,7 +113,80 @@ export default function MessDetailPage({ params }: PageProps) {
                             </>
                         )}
                     </div>
+
+                    {/* Mobile menu button */}
+                    <button
+                        onClick={() => setIsMenuOpen(!isMenuOpen)}
+                        className="md:hidden p-2 rounded-lg hover:bg-card"
+                        aria-label="Toggle menu"
+                    >
+                        <svg
+                            className="w-6 h-6"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            {isMenuOpen ? (
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M6 18L18 6M6 6l12 12"
+                                />
+                            ) : (
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M4 6h16M4 12h16M4 18h16"
+                                />
+                            )}
+                        </svg>
+                    </button>
                 </div>
+
+                {/* Mobile Navigation */}
+                {isMenuOpen && (
+                    <div className="md:hidden py-4 border-t border-border animate-fadeIn bg-background/95 backdrop-blur-sm">
+                        <div className="flex flex-col gap-3">
+                            {user ? (
+                                <>
+                                    <span className="text-sm text-muted px-4">Hi, {user.name}</span>
+                                    <button
+                                        onClick={() => {
+                                            logout();
+                                            router.push('/');
+                                            setIsMenuOpen(false);
+                                        }}
+                                        className="btn btn-secondary w-full mx-4 text-sm py-2"
+                                        style={{ width: 'calc(100% - 32px)' }}
+                                    >
+                                        Logout
+                                    </button>
+                                </>
+                            ) : (
+                                <>
+                                    <Link
+                                        href="/login"
+                                        className="btn btn-secondary text-center text-sm py-2 mx-4"
+                                        style={{ width: 'calc(100% - 32px)' }}
+                                        onClick={() => setIsMenuOpen(false)}
+                                    >
+                                        Log In
+                                    </Link>
+                                    <Link
+                                        href="/register"
+                                        className="btn btn-primary text-center text-sm py-2 mx-4"
+                                        style={{ width: 'calc(100% - 32px)' }}
+                                        onClick={() => setIsMenuOpen(false)}
+                                    >
+                                        Get Started
+                                    </Link>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                )}
             </div>
         </header>
     );
@@ -330,6 +415,28 @@ export default function MessDetailPage({ params }: PageProps) {
                     <div className="grid lg:grid-cols-3 gap-8">
                         {/* Main Content */}
                         <div className="lg:col-span-2 space-y-8">
+                            {/* Regular Thali Updated Time — from DB */}
+                            {(mess as any).regularThaliUpdatedAt && (
+                                <div
+                                    style={{
+                                        background: 'linear-gradient(90deg, #E8861A 0%, #D4750F 100%)',
+                                        color: '#fff',
+                                        padding: '12px 20px',
+                                        borderRadius: '12px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '10px',
+                                        marginBottom: '16px',
+                                        boxShadow: '0 2px 8px rgba(232, 134, 26, 0.25)',
+                                    }}
+                                >
+                                    <span style={{ fontSize: '20px' }}>🔄</span>
+                                    <span style={{ fontSize: '17px', fontWeight: 700, letterSpacing: '0.2px' }}>
+                                        Thali Updated: {getRelativeTime((mess as any).regularThaliUpdatedAt)}
+                                    </span>
+                                </div>
+                            )}
+
                             {/* Header */}
                             <div>
                                 <div className="flex items-center gap-3 mb-2">
@@ -342,8 +449,14 @@ export default function MessDetailPage({ params }: PageProps) {
                                 </div>
                                 <h1 className="text-3xl md:text-4xl font-bold mb-2">{mess.name}</h1>
                                 <p className="text-muted">{mess.address}</p>
-                                <div className="flex items-center gap-2 text-sm mt-1 text-muted-foreground">
-                                    <span>🕒 {mess.openingTime} - {mess.closingTime}</span>
+                                <div className="flex items-center gap-2 mt-2">
+                                    <span className="text-lg">🕒</span>
+                                    <span style={{ fontSize: '15px', fontWeight: 600, color: '#4A3F2F' }}>
+                                        Mess Opening &amp; Closing Time:{' '}
+                                    </span>
+                                    <span style={{ fontSize: '15px', fontWeight: 500 }}>
+                                        {formatTime(mess.openingTime)} - {formatTime(mess.closingTime)}
+                                    </span>
                                 </div>
                             </div>
 
@@ -599,17 +712,22 @@ export default function MessDetailPage({ params }: PageProps) {
                                 )}
                             </div>
 
-                            {/* Map Card */}
+                            {/* Location Card — address only, no coordinates */}
                             <div className="card">
-                                <h3 className="font-semibold mb-4">Location</h3>
-                                <a
-                                    href={`https://www.google.com/maps?q=${mess.location?.coordinates[1]},${mess.location?.coordinates[0]}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="btn btn-secondary w-full"
-                                >
-                                    📍 Open in Google Maps
-                                </a>
+                                <h3 className="font-semibold mb-4">📍 Location</h3>
+                                <p className="text-sm mb-4" style={{ color: '#4A3F2F', lineHeight: 1.6 }}>
+                                    {mess.address}
+                                </p>
+                                {mess.location?.coordinates && (
+                                    <a
+                                        href={`https://www.google.com/maps?q=${mess.location.coordinates[1]},${mess.location.coordinates[0]}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="btn btn-secondary w-full"
+                                    >
+                                        🗺️ Open in Google Maps
+                                    </a>
+                                )}
                             </div>
                         </div>
                     </div>

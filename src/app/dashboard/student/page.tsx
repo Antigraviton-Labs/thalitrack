@@ -503,7 +503,11 @@ export default function StudentDashboard() {
                                         } else if (sortBy === 'topRated') {
                                             return (b.averageRating ?? 0) - (a.averageRating ?? 0);
                                         } else {
-                                            return (a.monthlyPrice ?? 9999) - (b.monthlyPrice ?? 9999);
+                                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                            const priceA = (a as any).thalis?.[0]?.price ?? 9999;
+                                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                            const priceB = (b as any).thalis?.[0]?.price ?? 9999;
+                                            return priceA - priceB;
                                         }
                                     })
                                     .map((mess) => (

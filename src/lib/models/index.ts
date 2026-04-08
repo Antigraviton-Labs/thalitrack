@@ -5,6 +5,7 @@ export { default as Rating } from './Rating';
 export { default as Subscription } from './Subscription';
 export { default as Suggestion } from './Suggestion';
 export { default as Analytics } from './Analytics';
+export { default as NotificationSettings } from './NotificationSettings';
 
 export type { IUserDocument } from './User';
 export type { IMessDocument } from './Mess';
@@ -13,3 +14,5 @@ export type { IRatingDocument } from './Rating';
 export type { ISubscriptionDocument } from './Subscription';
 export type { ISuggestionDocument } from './Suggestion';
 export type { IAnalyticsDocument } from './Analytics';
+export type { INotificationSettingsDocument } from './NotificationSettings';
+

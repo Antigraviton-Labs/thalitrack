@@ -36,6 +36,7 @@ export interface IThali {
     averageRating: number;
     totalRatings: number;
     createdAt?: Date | string;
+    updatedAt?: Date | string;
 }
 
 export interface IMess {

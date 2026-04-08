@@ -92,25 +92,25 @@ export default function Navbar() {
 
                 {/* Mobile Navigation */}
                 {isMenuOpen && (
-                    <div className="md:hidden py-4 border-t border-border animate-fadeIn">
-                        <div className="flex flex-col gap-4">
+                    <div className="md:hidden py-4 border-t border-border animate-fadeIn bg-background/95 backdrop-blur-sm absolute left-0 right-0 top-16 shadow-lg">
+                        <div className="px-4 flex flex-col gap-4">
                             <Link
                                 href="/discover"
-                                className="text-foreground hover:text-primary transition-colors"
+                                className="text-foreground hover:text-primary transition-colors text-sm font-medium"
                                 onClick={() => setIsMenuOpen(false)}
                             >
                                 Discover Messes
                             </Link>
                             <Link
                                 href="/#features"
-                                className="text-foreground hover:text-primary transition-colors"
+                                className="text-foreground hover:text-primary transition-colors text-sm font-medium"
                                 onClick={() => setIsMenuOpen(false)}
                             >
                                 Features
                             </Link>
                             <Link
                                 href="/#pricing"
-                                className="text-foreground hover:text-primary transition-colors"
+                                className="text-foreground hover:text-primary transition-colors text-sm font-medium"
                                 onClick={() => setIsMenuOpen(false)}
                             >
                                 Pricing
@@ -119,17 +119,17 @@ export default function Navbar() {
                                 {user ? (
                                     <Link
                                         href={user.role === 'student' ? '/dashboard/student' : '/dashboard/mess-owner'}
-                                        className="btn btn-primary w-full text-center"
+                                        className="btn btn-primary w-full text-center text-sm py-2"
                                         onClick={() => setIsMenuOpen(false)}
                                     >
                                         Go to Dashboard
                                     </Link>
                                 ) : (
                                     <>
-                                        <Link href="/login" className="btn btn-secondary w-full text-center" onClick={() => setIsMenuOpen(false)}>
+                                        <Link href="/login" className="btn btn-secondary w-full text-center text-sm py-2" onClick={() => setIsMenuOpen(false)}>
                                             Log In
                                         </Link>
-                                        <Link href="/register" className="btn btn-primary w-full text-center" onClick={() => setIsMenuOpen(false)}>
+                                        <Link href="/register" className="btn btn-primary w-full text-center text-sm py-2" onClick={() => setIsMenuOpen(false)}>
                                             Get Started
                                         </Link>
                                     </>

@@ -177,6 +177,10 @@ const messSchema = new Schema<IMessDocument>(
                     type: Date,
                     default: Date.now,
                 },
+                updatedAt: {
+                    type: Date,
+                    default: Date.now,
+                },
                 averageRating: {
                     type: Number,
                     default: 0,
@@ -256,9 +260,12 @@ messSchema.index({ name: 'text', description: 'text', address: 'text' });
 // Compound indexes for common queries
 messSchema.index({ status: 1, isApproved: 1, isActive: 1 });
 messSchema.index({ status: 1, averageRating: -1 });
-messSchema.index({ monthlyPrice: 1 });
+messSchema.index({ 'thalis.0.price': 1 });
 
-const Mess: Model<IMessDocument> =
-    mongoose.models.Mess || mongoose.model<IMessDocument>('Mess', messSchema);
+// Force model recompilation in Next.js dev mode so schema changes apply
+if (mongoose.models.Mess) {
+    delete mongoose.models.Mess;
+}
+const Mess: Model<IMessDocument> = mongoose.model<IMessDocument>('Mess', messSchema);
 
 export default Mess;

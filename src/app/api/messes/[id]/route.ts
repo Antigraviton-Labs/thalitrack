@@ -72,8 +72,14 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             console.error('Analytics tracking error:', trackError);
         }
 
+        // Extract Regular Thali updatedAt (first thali = Regular Thali)
+        const regularThaliUpdatedAt = (mess as any).thalis?.[0]?.updatedAt
+            || (mess as any).thalis?.[0]?.createdAt
+            || null;
+
         return successResponse({
             ...mess,
+            regularThaliUpdatedAt,
             todayMenu,
             suggestions,
         });
@@ -116,7 +122,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
             return errorResponse(validation.errors.join(', '), 400);
         }
 
-        const { latitude, longitude, thalis: newThalis, ...updateData } = validation.data;
+        const { latitude, longitude, thalis: newThalis, singleThaliIndex, ...updateData } = validation.data;
 
         // Build update object
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -135,27 +141,82 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
             if (update.menuEnabled === 'no') {
                 update.thalis = [];
             } else {
-                // Find orphaned thaliIds (old thalis not in new array)
-                const oldThaliIds = (mess.thalis || []).map((t: { thaliId: string }) => t.thaliId);
-                const newThaliIds = newThalis.map((t: { thaliId: string }) => t.thaliId);
-                const orphanedIds = oldThaliIds.filter((id: string) => !newThaliIds.includes(id));
+                // Check if this is a single-thali save (only one thali being updated)
+                const isSingleSave = typeof singleThaliIndex === 'number';
 
-                // Cascade delete ratings for orphaned thalis
-                if (orphanedIds.length > 0) {
-                    await Rating.deleteMany({ messId: id, type: 'thali', thaliId: { $in: orphanedIds } });
+                if (isSingleSave) {
+                    if (singleThaliIndex >= 0 && singleThaliIndex <= (mess.thalis || []).length) {
+                        // Convert thalis to plain objects to avoid mongoose subdocument issues during update
+                        const plainThalis = mess.toObject().thalis || [];
+                        
+                        // Single thali save: only update or append the specific thali
+                        const updatedThali = newThalis[0]; // The single thali data sent from client
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        const existingThali = plainThalis[singleThaliIndex];
+
+                        // Build the merged thali with updated timestamp
+                        const mergedThali = {
+                            ...updatedThali,
+                            averageRating: existingThali?.averageRating || 0,
+                            totalRatings: existingThali?.totalRatings || 0,
+                            createdAt: existingThali?.createdAt || new Date(),
+                            updatedAt: new Date(), // This specific thali was saved, so update its timestamp
+                        };
+
+                        if (singleThaliIndex === plainThalis.length) {
+                            // Append new thali
+                            update.thalis = [...plainThalis, mergedThali];
+                        } else {
+                            // Replace just the one thali in the array
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            update.thalis = plainThalis.map((t: any, i: number) =>
+                                i === singleThaliIndex ? mergedThali : t
+                            );
+                        }
+                    } else {
+                        return errorResponse('Invalid thali index provided', 400);
+                    }
+                } else {
+                    // Full replace ("Save All") — find orphaned thaliIds for rating cascade
+                    const oldThaliIds = (mess.thalis || []).map((t: { thaliId: string }) => t.thaliId);
+                    const newThaliIds = newThalis.map((t: { thaliId: string }) => t.thaliId);
+                    const orphanedIds = oldThaliIds.filter((id: string) => !newThaliIds.includes(id));
+
+                    // Cascade delete ratings for orphaned thalis
+                    if (orphanedIds.length > 0) {
+                        await Rating.deleteMany({ messId: id, type: 'thali', thaliId: { $in: orphanedIds } });
+                    }
+
+                    // Preserve averageRating, totalRatings, and updatedAt from existing thalis
+                    // Only bump updatedAt for thalis whose content actually changed
+                    update.thalis = newThalis.map((newT: { thaliId: string; thaliName: string; description?: string; price: number; items: unknown[]; createdAt?: string | Date }) => {
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        const existing = (mess.thalis || []).find((old: any) => old.thaliId === newT.thaliId);
+                        
+                        // Check if thali content actually changed
+                        let contentChanged = !existing; // New thali = changed
+                        if (existing) {
+                            // Compare relevant fields
+                            const nameChanged = existing.thaliName !== newT.thaliName;
+                            const priceChanged = existing.price !== newT.price;
+                            const descChanged = (existing.description || '') !== (newT.description || '');
+                            const itemsChanged = JSON.stringify(
+                                (existing.items || []).map((i: any) => ({ itemName: i.itemName }))
+                            ) !== JSON.stringify(
+                                (newT.items as any[] || []).map((i: any) => ({ itemName: i.itemName }))
+                            );
+                            contentChanged = nameChanged || priceChanged || descChanged || itemsChanged;
+                        }
+
+                        return {
+                            ...newT,
+                            averageRating: existing?.averageRating || 0,
+                            totalRatings: existing?.totalRatings || 0,
+                            createdAt: existing?.createdAt || new Date(),
+                            updatedAt: contentChanged ? new Date() : (existing?.updatedAt || new Date()),
+                        };
+                    });
                 }
-
-                // Preserve averageRating and totalRatings from existing thalis
-                update.thalis = newThalis.map((newT: { thaliId: string; thaliName: string; description?: string; price: number; items: unknown[]; createdAt?: string | Date }) => {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const existing = (mess.thalis || []).find((old: any) => old.thaliId === newT.thaliId);
-                    return {
-                        ...newT,
-                        averageRating: existing?.averageRating || 0,
-                        totalRatings: existing?.totalRatings || 0,
-                        createdAt: existing?.createdAt || new Date(), // Preserve or set creation time
-                    };
-                });
             }
         }
 

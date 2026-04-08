@@ -172,6 +172,7 @@ const createMessBaseSchema = z.object({
     menuItems: z.array(menuItemSchema).optional(),
     thalis: z.array(thaliSchema).optional(),
     status: z.enum(['open', 'closed']).optional(),
+    singleThaliIndex: z.number().int().min(0).optional(),
 }).transform((data) => {
     if (data.monthlyPlan === 'no') {
         data.monthlyPrice = 0;
