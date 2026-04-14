@@ -192,6 +192,12 @@ const messSchema = new Schema<IMessDocument>(
                     default: 0,
                     min: 0,
                 },
+                mealType: {
+                    type: String,
+                    enum: ['afternoon', 'evening'],
+                    default: 'afternoon',
+                    // Only used for Regular Thali (index 0)
+                },
             }],
             default: [],
         },

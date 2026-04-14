@@ -65,6 +65,7 @@ const thaliSchema = z.object({
     price: z.number().min(0, 'Price cannot be negative').max(10000, 'Price too high'),
     items: z.array(thaliItemSchema).default([]),
     createdAt: z.string().or(z.date()).optional(), // Allow createdAt
+    mealType: z.enum(['afternoon', 'evening']).optional(), // Only used for Regular Thali (index 0)
 });
 
 // Mess validation schemas

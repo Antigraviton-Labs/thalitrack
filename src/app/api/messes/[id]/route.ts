@@ -137,6 +137,20 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
         // Handle thalis full-replace with orphaned rating cascade
         if (newThalis !== undefined) {
+            // Validate: mealType should ONLY be on first thali (index 0)
+            if (Array.isArray(newThalis)) {
+                for (let i = 0; i < newThalis.length; i++) {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const thaliData = newThalis[i] as any;
+                    if (i !== 0 && thaliData.mealType) {
+                        return errorResponse('mealType can only be set on the first thali (Regular Thali)', 400);
+                    }
+                    // Clear mealType for non-first thalis
+                    if (i !== 0) {
+                        delete thaliData.mealType;
+                    }
+                }
+            }
             // If menuEnabled is 'no', clear thalis
             if (update.menuEnabled === 'no') {
                 update.thalis = [];

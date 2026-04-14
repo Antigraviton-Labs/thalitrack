@@ -94,7 +94,15 @@ export default function MessCard({ mess, isSaved, onSaveToggle }: MessCardProps)
                         className="object-cover transition-transform group-hover:scale-110"
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     />
-                    {/* Price Badge */}
+                    {/* Meal Type Badge - TOP LEFT */}
+                    {mess.thalis && mess.thalis[0]?.mealType && (
+                        <div className="absolute top-3 left-3 bg-background/90 backdrop-blur-sm px-3 py-1.5 rounded-full">
+                            <span className="text-sm font-bold">
+                                {mess.thalis[0].mealType === 'afternoon' ? '🟠 Afternoon' : '🔵 Evening'}
+                            </span>
+                        </div>
+                    )}
+                    {/* Price Badge - TOP RIGHT */}
                     <div className="absolute top-3 right-3 bg-background/90 backdrop-blur-sm px-3 py-1 rounded-full">
                         <span className="font-bold" style={{ color: '#2E7D52' }}>₹{mess.monthlyPrice}</span>
                         <span className="text-xs text-muted">/mo</span>

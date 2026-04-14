@@ -18,6 +18,7 @@ interface Thali {
     items: ThaliItem[];
     averageRating?: number;
     totalRatings?: number;
+    mealType?: 'afternoon' | 'evening'; // Only used for Regular Thali (index 0)
 }
 
 
@@ -388,6 +389,37 @@ export default function ManageMenuPage() {
                                         onChange={e => updateThali(tIdx, 'description', e.target.value)}
                                     />
                                 </div>
+
+                                {/* Meal Type Toggle - ONLY for Regular Thali (index 0) */}
+                                {tIdx === 0 && (
+                                    <div className="mb-4 p-4 bg-primary/5 rounded-lg border border-primary/20">
+                                        <label className="text-xs text-muted mb-3 block font-semibold">Select Meal Type (Regular Thali Only)</label>
+                                        <div className="flex gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => updateThali(tIdx, 'mealType', 'afternoon')}
+                                                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
+                                                    thali.mealType === 'afternoon' || !thali.mealType
+                                                        ? 'bg-primary text-white shadow-md'
+                                                        : 'bg-card border border-border text-muted hover:border-primary'
+                                                }`}
+                                            >
+                                                🟠 Afternoon
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => updateThali(tIdx, 'mealType', 'evening')}
+                                                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
+                                                    thali.mealType === 'evening'
+                                                        ? 'bg-primary text-white shadow-md'
+                                                        : 'bg-card border border-border text-muted hover:border-primary'
+                                                }`}
+                                            >
+                                                🔵 Evening
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
 
                                 {/* Rating Badge (if rated) */}
                                 {thali.averageRating !== undefined && thali.averageRating > 0 && (

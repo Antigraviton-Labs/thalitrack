@@ -37,6 +37,7 @@ export interface IThali {
     totalRatings: number;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    mealType?: 'afternoon' | 'evening'; // Only used for Regular Thali (index 0)
 }
 
 export interface IMess {

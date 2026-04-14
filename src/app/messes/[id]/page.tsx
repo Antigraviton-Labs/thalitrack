@@ -478,6 +478,29 @@ export default function MessDetailPage({ params }: PageProps) {
                                 </div>
                             </div>
 
+                            {/* Currently Showing Meal Type Section - Regular Thali Only */}
+                            {mess.thalis && mess.thalis[0]?.mealType && (
+                                <div
+                                    style={{
+                                        background: 'linear-gradient(135deg, #E8861A 0%, #D4750F 100%)',
+                                        color: '#fff',
+                                        padding: '20px 24px',
+                                        borderRadius: '12px',
+                                        boxShadow: '0 4px 12px rgba(232, 134, 26, 0.3)',
+                                    }}
+                                >
+                                    <div style={{ fontSize: '18px', fontWeight: 700, marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <span style={{ fontSize: '24px' }}>
+                                            {mess.thalis[0].mealType === 'afternoon' ? '🟠' : '🔵'}
+                                        </span>
+                                        Currently Showing: {mess.thalis[0].mealType === 'afternoon' ? 'Afternoon Menu' : 'Evening Menu'}
+                                    </div>
+                                    <p style={{ fontSize: '14px', opacity: 0.95 }}>
+                                        This is the {mess.thalis[0].thaliName} ({mess.thalis[0].mealType === 'afternoon' ? 'Afternoon' : 'Evening'}) serving
+                                    </p>
+                                </div>
+                            )}
+
                             {/* Tabs */}
                             <div className="border-b border-border">
                                 <div className="flex gap-6">
