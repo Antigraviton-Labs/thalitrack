@@ -86,7 +86,7 @@ export default function EditMessPage() {
                             openingTime: d.openingTime || '11:00',
                             closingTime: d.closingTime || '21:00',
                             tiffinService: d.tiffinService || 'no',
-                            menuEnabled: d.menuEnabled || 'no',
+                            menuEnabled: d.menuEnabled || 'yes',
                             menuItems: d.menuItems || [],
                         });
 

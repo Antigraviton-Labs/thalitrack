@@ -33,8 +33,11 @@ export default function CreateMessPage() {
         openingTime: '11:00',
         closingTime: '21:00',
         tiffinService: 'no' as 'yes' | 'no',
-        menuEnabled: 'no' as 'yes' | 'no',
+        menuEnabled: 'yes' as 'yes' | 'no', // Enabled by default for new mess owners
     });
+
+
+
 
     const [menuItems, setMenuItems] = useState<MenuItem[]>([
         { dishName: '', price: 0 },
@@ -141,13 +144,6 @@ export default function CreateMessPage() {
         }));
     };
 
-    const handleMenuToggle = (value: 'yes' | 'no') => {
-        setFormData((prev) => ({ ...prev, menuEnabled: value }));
-        if (value === 'no') {
-            setMenuItems([{ dishName: '', price: 0 }]);
-        }
-    };
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
@@ -209,6 +205,8 @@ export default function CreateMessPage() {
                 menuEnabled: formData.menuEnabled,
                 menuItems: cleanedMenuItems,
             };
+
+
 
             const response = await fetch('/api/messes', {
                 method: 'POST',
@@ -564,27 +562,12 @@ export default function CreateMessPage() {
                     </div>
 
                     <div>
-                        <label className="label">Do you want to upload Menu? *</label>
-                        <div className="toggle-group">
-                            <button
-                                type="button"
-                                className={`toggle-btn ${formData.menuEnabled === 'yes' ? 'active' : ''}`}
-                                onClick={() => handleMenuToggle('yes')}
-                            >
-                                ✅ Yes
-                            </button>
-                            <button
-                                type="button"
-                                className={`toggle-btn ${formData.menuEnabled === 'no' ? 'active' : ''}`}
-                                onClick={() => handleMenuToggle('no')}
-                            >
-                                ❌ No
-                            </button>
-                        </div>
+                        <label className="label">✅ Menu Upload is Enabled by Default</label>
+                        <p className="text-sm text-muted">You can manage your menu and add dishes after creating your mess</p>
                     </div>
 
-                    {formData.menuEnabled === 'yes' && (
-                        <div className="animate-fadeIn" style={{ paddingLeft: '1rem', borderLeft: '3px solid var(--primary)' }}>
+                    {/* Menu items section - always shown since menuEnabled is always 'yes' */}
+                    <div className="animate-fadeIn" style={{ paddingLeft: '1rem', borderLeft: '3px solid var(--primary)' }}>
                             {menuItems.map((item, index) => (
                                 <div
                                     key={index}
@@ -648,7 +631,6 @@ export default function CreateMessPage() {
                                 ➕ Add More Dish
                             </button>
                         </div>
-                    )}
 
                     {/* Submit */}
                     <button

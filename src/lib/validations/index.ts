@@ -129,7 +129,7 @@ export const createMessSchema = z.object({
         .string()
         .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, 'Invalid time format (use HH:MM)'),
     tiffinService: z.enum(['yes', 'no']).default('no'),
-    menuEnabled: z.enum(['yes', 'no']).default('no'),
+    menuEnabled: z.enum(['yes', 'no']).default('yes'),
     menuItems: z.array(menuItemSchema).optional().default([]),
     thalis: z.array(thaliSchema).optional().default([]),
     status: z.enum(['open', 'closed']).default('open'),
@@ -139,9 +139,11 @@ export const createMessSchema = z.object({
         data.monthlyPrice = 0;
         data.monthlyDescription = undefined;
     }
+    // menuEnabled controls ONLY the fixed menu (menuItems array)
+    // It should NOT affect thalis (the daily changing menu system)
     if (data.menuEnabled === 'no') {
         data.menuItems = [];
-        data.thalis = [];
+        // IMPORTANT: Do NOT clear thalis here - they are independent
     }
     // Filter out empty dish names from menuItems
     if (data.menuItems && data.menuItems.length > 0) {
@@ -179,9 +181,11 @@ const createMessBaseSchema = z.object({
         data.monthlyPrice = 0;
         data.monthlyDescription = undefined;
     }
+    // menuEnabled controls ONLY the fixed menu (menuItems array)
+    // It should NOT affect thalis (the daily changing menu system)
     if (data.menuEnabled === 'no') {
         data.menuItems = [];
-        data.thalis = [];
+        // IMPORTANT: Do NOT clear thalis here - they are independent
     }
     if (data.menuItems && data.menuItems.length > 0) {
         data.menuItems = data.menuItems.filter(item => item.dishName.trim().length > 0);

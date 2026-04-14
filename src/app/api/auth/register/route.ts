@@ -44,6 +44,8 @@ export async function POST(request: NextRequest) {
                 status: 'trial',
                 trialEndsAt,
             });
+            // NOTE: DO NOT create Mess here - user must complete onboarding first
+            // Mess will be created in the "List Your Mess" flow
         }
 
         // Generate token

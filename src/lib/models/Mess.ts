@@ -109,7 +109,7 @@ const messSchema = new Schema<IMessDocument>(
         menuEnabled: {
             type: String,
             enum: ['yes', 'no'],
-            default: 'no',
+            default: 'yes',
             required: true,
         },
         menuItems: {

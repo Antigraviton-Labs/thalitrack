@@ -199,6 +199,13 @@ export default function MessOwnerDashboard() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [authLoading, user, token, router]);
 
+    // If mess owner has no mess, redirect to create/setup page
+    useEffect(() => {
+        if (!isLoading && data && !data.mess) {
+            router.push('/dashboard/mess-owner/mess/create');
+        }
+    }, [isLoading, data, router]);
+
     if (authLoading || isLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
@@ -336,13 +343,12 @@ export default function MessOwnerDashboard() {
                         {/* Quick Actions */}
                         <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
                         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                            {data.mess.menuEnabled === 'yes' && (
-                                <Link href="/dashboard/mess-owner/menu" className="card hover:border-primary transition-colors">
-                                    <span className="text-3xl mb-2 block">📋</span>
-                                    <h3 className="font-semibold">Manage Menu</h3>
-                                    <p className="text-sm text-muted">Manage thalis &amp; menu items</p>
-                                </Link>
-                            )}
+                            {/* Manage Menu - ALWAYS visible for mess owners (manages thalis, not optional fixed menu) */}
+                            <Link href="/dashboard/mess-owner/menu" className="card hover:border-primary transition-colors">
+                                <span className="text-3xl mb-2 block">📋</span>
+                                <h3 className="font-semibold">Manage Menu</h3>
+                                <p className="text-sm text-muted">Manage thalis &amp; menu items</p>
+                            </Link>
                             <Link href={`/dashboard/mess-owner/mess/edit`} className="card hover:border-primary transition-colors">
                                 <span className="text-3xl mb-2 block">🏠</span>
                                 <h3 className="font-semibold">Edit Profile</h3>

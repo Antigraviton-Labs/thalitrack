@@ -65,7 +65,8 @@ function RegisterForm() {
         if (result.success) {
             // Redirect based on role
             if (formData.role === 'messOwner') {
-                router.push('/dashboard/mess-owner');
+                // New mess owners go to create/list mess page first (onboarding)
+                router.push('/dashboard/mess-owner/mess/create');
             } else {
                 router.push('/discover');
             }

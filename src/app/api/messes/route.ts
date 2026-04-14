@@ -412,9 +412,12 @@ export async function POST(request: NextRequest) {
             return errorResponse(validation.errors.join(', '), 400);
         }
 
+
+
         const { latitude, longitude, ...messData } = validation.data;
 
         // Create mess with all fields (new fields are already sanitized by validator transform)
+
         const mess = await Mess.create({
             ...messData,
             ownerId: userId,
@@ -424,6 +427,8 @@ export async function POST(request: NextRequest) {
             },
             isApproved: false, // Requires admin approval
         });
+
+
 
         // Create initial analytics record
         await Analytics.create({
